@@ -29,6 +29,11 @@ from keras.applications.inception_resnet_v2 import InceptionResNetV2, preprocess
 from keras.applications.vgg16 import VGG16, preprocess_input as preprocess_vgg16, decode_predictions as decode_vgg16
 from keras.applications.mobilenet import MobileNet, preprocess_input as preprocess_mobileNet, decode_predictions as decode_mobileNet
 
+import tensorflow as tf
+
+from os.path import join as fullfile
+from os import makedirs
+
 matplotlib.use('Agg')#para no abrir las figuras, si quiero abrirlas seria con TkAgg
 #The default backend for Matplotlib is the “TkAgg” backend, which is a cross-platform graphical user interface (GUI) toolkit. However, there are other backends available that may be better suited to your needs, such as the “Agg” backend for non-interactive plotting
 # ------------------------ Funciones auxiliares ---------------------------------
@@ -96,7 +101,7 @@ def loadImages(path, index_vector, size=(224,224), createImages=True, unclassifi
                 img_path = path + dir_name + "/"
                 file_name = searchImageInDirectory(index_vector[index], img_path, 50)
                 ID = dir_name
-            img_path += file_name
+            img_path=fullfile(img_path,file_name)
             # Preprocess data
             X_test[index] = gradCamInterface.get_img_array_path(img_path, size)
             imagen = Imagen(file_name, X_test[index], size, ID, networkName)
@@ -175,9 +180,9 @@ def isValidToCreateAdversarialExample(originalImage, classifier, isImagenet):
     img_array = gradCamInterface.get_img_array(imgCopy)
     img_array = preprocess_input(originalImage.networkModelName, img_array)
     preds = classifier.model.predict(img_array)
-    p = decode_predictions(originalImage.networkModelName, preds)
-    originalImage.addPrediction(p[0][0][0])
-    if p[0][0][0] != originalImage.id:
+    p = np.argmax(preds) #decode_predictions(originalImage.networkModelName, preds)
+    originalImage.addPrediction(p)#[0][0][0])
+    if p != originalImage.id: # p[0][0][0]
         if isImagenet == False:
             originalImage.addAdvNatural(True)
         return False
@@ -190,10 +195,10 @@ def isAnAdversarialExample(originalImage, adv_img, classifier):
     adv_array = gradCamInterface.get_img_array(imgCopy)
     adv_array = preprocess_input(originalImage.networkModelName, adv_array)
     preds = classifier.predict(adv_array)
-    p = decode_predictions(originalImage.networkModelName, preds)
-    if p[0][0][0] != originalImage.id:
+    p = np.argmax(preds) #decode_predictions(originalImage.networkModelName, preds)
+    if p != originalImage.id: # [0][0][0]
         isValid = True
-    return isValid, p[0][0][0]
+    return isValid, p#[0][0][0]
 def generateAllAdversarialImagesAtOnce(originalImages, x_test, attackName, epsilon, classifier, path, isImagenet=True):
     # Generate adversarial test examples
     attack = getAttackMethod(attackName, classifier, epsilon)
@@ -333,19 +338,22 @@ def saveVariable(datos, filename):
 def loadVariable(filename):
      with open(filename, "rb") as f:
          return pickle.load(f)
-def getNetworkModel(NetworkModelName):
-    if NetworkModelName == 'EfficientNetB0' or NetworkModelName == 'efficientNetB0':
-        return EfficientNetB0(weights="imagenet", include_top=True, classes=1000, input_shape=(224, 224, 3))
-    elif NetworkModelName == 'Xception' or NetworkModelName == 'xception':
-        return Xception(include_top=True, weights="imagenet", input_tensor=Input(shape=(299, 299, 3)))
-    elif NetworkModelName == 'InceptionV3' or NetworkModelName == 'inceptionv3':
-        return InceptionV3(include_top=True, weights="imagenet", input_tensor=Input(shape=(299, 299, 3)))
-    elif NetworkModelName == 'InceptionResNetV2' or NetworkModelName == 'inceptionresnetv2':
-        return InceptionResNetV2(include_top=True, weights="imagenet", input_tensor=Input(shape=(299, 299, 3)))
-    elif NetworkModelName == 'VGG16' or NetworkModelName == 'vgg16':
-        return VGG16(include_top=True, weights="imagenet", input_tensor=Input(shape=(224, 224, 3)))
-    elif NetworkModelName == 'MobileNet' or NetworkModelName == 'mobileNet':
-        return MobileNet(include_top=True, weights="imagenet", input_tensor=Input(shape=(224, 224, 3)))
+def getNetworkModel(NetworkModelName,customModel=False,modelPath=''):
+    if customModel:
+        return tf.keras.models.load_model(modelPath)
+    else:
+        if NetworkModelName == 'EfficientNetB0' or NetworkModelName == 'efficientNetB0':
+            return EfficientNetB0(weights="imagenet", include_top=True, classes=1000, input_shape=(224, 224, 3))
+        if NetworkModelName == 'Xception' or NetworkModelName == 'xception':
+            return Xception(include_top=True, weights="imagenet", input_tensor=Input(shape=(299, 299, 3)))
+        elif NetworkModelName == 'InceptionV3' or NetworkModelName == 'inceptionv3':
+            return InceptionV3(include_top=True, weights="imagenet", input_tensor=Input(shape=(299, 299, 3)))
+        elif NetworkModelName == 'InceptionResNetV2' or NetworkModelName == 'inceptionresnetv2':
+            return InceptionResNetV2(include_top=True, weights="imagenet", input_tensor=Input(shape=(299, 299, 3)))
+        elif NetworkModelName == 'VGG16' or NetworkModelName == 'vgg16':
+            return VGG16(include_top=True, weights="imagenet", input_tensor=Input(shape=(224, 224, 3)))
+        elif NetworkModelName == 'MobileNet' or NetworkModelName == 'mobileNet':
+            return MobileNet(include_top=True, weights="imagenet", input_tensor=Input(shape=(224, 224, 3)))
 
 def preprocess_input(NetworkModelName, img_array):
     if NetworkModelName == 'EfficientNetB0' or NetworkModelName == 'efficientNetB0':
@@ -454,9 +462,13 @@ def saveResults(list_of_images, imagen_data, exec_ID='', type=''):
     img_id = imagen_data[0].name
     img_id = img_id.replace('.png', '')
     if imagen_data[0].advNatural:
-        file_name = 'gradCam_examples_%s/NaturalAdversarial%s/gradCam_example_%s.jpg' % ( exec_ID, type, img_id)
+        imagePath=fullfile('results','gradCam_examples_'+str(exec_ID),'NaturalAdversarial'+str(type))
+        makedirs(imagePath, exist_ok=True)
+        file_name =  fullfile(imagePath,'gradCam_example_%s.jpg' % (img_id))
     else:
-        file_name = 'gradCam_examples_%s/ArtificialAdversarial%s/gradCam_example_%s_attack_method-%s.jpg' % ( exec_ID, type, img_id, imagen_data[1].attackName)
+        imagePath=fullfile('ressults','gradCam_examples_'+str(exec_ID),'ArtificialAdversarial'+str(type))
+        makedirs(imagePath, exist_ok=True)
+        file_name = fullfile(imagePath,'gradCam_example_%s_attack_method-%s.jpg' % (img_id, imagen_data[1].attackName) )
 
     fig.savefig(file_name)
     plt.close()

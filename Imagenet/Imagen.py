@@ -1,4 +1,4 @@
-from idDict import idDictionary
+#from idDict import idDictionary
 class Imagen:
     def __init__(self, imageName, imageData, imageSize, imageId, networkName):
         self.name = imageName
@@ -6,7 +6,7 @@ class Imagen:
         self.size = imageSize #Indica el tamaño de la imagen (Ej:(224, 224))
         self.id = imageId #Indica el ID (n--------) de la clase real del objeto
         self.networkModelName = networkName #Indica el nombre de la red neuronal con el que se hizo la prediccion de los datos
-        self.idName = idDictionary[imageId] #Indica el nombre de la clase real del objeto
+        self.idName = imageId #idDictionary[imageId] #Indica el nombre de la clase real del objeto
         self.heatmap = 0
         self.predictionId = ''
         self.predictionName = ''
@@ -30,7 +30,7 @@ class Imagen:
 
     def addPrediction(self, predID):
         self.predictionId = predID
-        self.predictionName = idDictionary[predID]
+        self.predictionName = predID #idDictionary[predID]s
 
     def addAdversarialData(self, attackName, epsilon):
         self.attackName = attackName

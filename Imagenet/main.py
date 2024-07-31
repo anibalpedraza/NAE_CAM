@@ -10,6 +10,8 @@ from tensorflow import keras
 #Mas ataques: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#fast-gradient-method-fgm
 from art.estimators.classification import TensorFlowV2Classifier
 
+from os.path import join as fullfile
+
 # ------------------------ Funciones auxiliares ---------------------------------
 def train_step(model, images, labels):
     with tf.GradientTape() as tape:
@@ -48,26 +50,36 @@ def executeGradCam(orig, adv) :
     return plot_img, list_img
 
 # ------------------------ Constantes ---------------------------------------
-NUM_CLASSES = 1000 #imagenet=1000
+NUM_CLASSES = 46 #imagenet=1000
 #EFFICIENTNETB0 IMG_SIZE = (224, 224)#IMG_SHAPE = (224, 224, 3)
 IMG_SIZE = (299, 299)
 IMG_SHAPE = (299, 299, 3)
 LR = 0.01 #Learning Rate usado en el optimizador
-NUM_IMG = 50 #Cantidad de imagenes de test
-TOTAL_IMG = 1000 #Cantidad de imagenes de las que se disponen, imagenet=50000
-IMG_PATH = "C:/Users/User/TFG-repository/webcam_gradcam/ImageNetWebcam/waterBottle_xception/frames_raw/"
+NUM_IMG = 90 #Cantidad de imagenes de test
+TOTAL_IMG = 90 #Cantidad de imagenes de las que se disponen, imagenet=50000
+
+BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM'
+#BASE_PATH='D:\\Dataset_NAE_CAM'
+
+IMG_PATH = fullfile(BASE_PATH, 'frames_raw_crop_2') # 'frames_raw_crop' # 'frames_raw'
 #EXECUTION_ID = "WebcamData_01" #Se usará para no sustituir variables de distintas ejecuciones
-EXECUTION_ID = "WebcamData_Xception"
+
 #IMG_PATH = "C:/Users/User/TFG-repository/Imagenet/movil/"#cambiar parametros de entrada de loadImages segun si son de imagenet o no
-realID='n04557648'
+realID= 13 #'Cymbella' #Default: 'n04557648'
 
 #EPSILON = [20000, 30000]
 ATTACK_NAME = ['FastGradientMethod']
-NetworkModelName = 'Xception'
+NetworkModelName = 'EfficientNetB0' # 'InceptionV3' # 'EfficientNetB0' #'Xception'
+kindModel = 'base' #'finetuned'
+timestamp = '20240730_122157' #'20240730_130240' #'20240730_122157' #'20240729_134137'
+networkCheckpointName= timestamp+'_'+NetworkModelName+'_model_'+kindModel+'.h5'
+
+EXECUTION_ID = timestamp+"WebcamData_"+NetworkModelName+"_02"#"_01"
 
 # ------------------------ Código principal ---------------------------------
 # Load model: CNN -> EfficientNetB0
-model = aux.getNetworkModel(NetworkModelName)
+modelPath=fullfile(BASE_PATH,'checkpoints',networkCheckpointName)
+model = aux.getNetworkModel(NetworkModelName,customModel=True, modelPath=modelPath)
 model.trainable = False
 optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
 loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
@@ -75,7 +87,8 @@ classifier = TensorFlowV2Classifier(model=model, clip_values=(0, 1), nb_classes=
 
 #Load Images
 randomVector = aux.generateRandomVector(NUM_IMG, TOTAL_IMG)
-x_test, img_test = aux.loadImages(IMG_PATH, randomVector, size= IMG_SIZE, unclassified_images=True, realID=realID, networkName='Xception')# Quitar unclassified_images y realID para imagenet
+x_test, img_test = aux.loadImages(IMG_PATH, randomVector, size= IMG_SIZE,
+                                  unclassified_images=True, realID=realID, networkName=NetworkModelName)# Quitar unclassified_images y realID para imagenet
 #Si createImages = True: cargará las imagenes originales desde la carpeta y generará las adversarias de cero
 #Si unclassified_images = True: cargará las imagenes que no son de imagenet y por tanto no estan dentro de una carpeta con el valor de su ID
 
@@ -105,10 +118,12 @@ aux.calculatePercentageNaturalAdversarial(img_test)
 
 # Save variables
 try :
-    os.mkdir('variables')
+    os.mkdir(fullfile('results','variables'))
 except OSError as e :
     if e.errno != errno.EEXIST :
         raise
-aux.saveVariable(img_test, "variables/%s_testImages_efficientnetB0_random%simages.pkl" % (EXECUTION_ID, NUM_IMG))
-aux.saveVariable(img_adv, "variables/%s_adversarials_images_atcks_%s" % (EXECUTION_ID, ATTACK_NAME) + ".pkl")
+aux.saveVariable(img_test, fullfile('results','variables',"%s_testImages_%s_random%simages.pkl" % 
+                                    (EXECUTION_ID, NetworkModelName, NUM_IMG)))
+aux.saveVariable(img_adv, fullfile('results','variables',"%s_adversarials_images_atcks_%s" % 
+                                   (EXECUTION_ID, ATTACK_NAME) + ".pkl"))
 #https://stackoverflow.com/questions/66182884/how-to-implement-grad-cam-on-a-trained-network

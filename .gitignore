@@ -130,3 +130,6 @@ dmypy.json
 /Imagenet/ImagenetValidation.zip
 /Imagenet/val_classes/
 /EjemploFuncional_cifar10/img.jpg
+
+*.jpg
+*.pkl
