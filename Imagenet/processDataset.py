@@ -28,20 +28,34 @@ def cropDiatomObject(img):
     img = img.crop((left, top, right, bottom))
     return img
 
-def convertAndProcessImages(inputPath,outputPath,outputFormat,processingFunction=None):
+def resizeImage(img):
+    size=(224,224)
+    img = img.resize(size)
+    return img
+
+
+def getClassFromDirname(dirname,filename):
+    return dirname.split('\\')[-1]
+
+def getClassFromFilename(dirname,filename):
+    return filename.split('_')[0]
+
+def convertAndProcessImages(inputPath,outputPath,outputFormat='png',
+                            processingFunction=None,
+                            classNameFunction=getClassFromDirname):
 
     # Read all subdirectores and convert images in specified format
     #nImages=sum([len(files) for _, _, files in walk(inputPath)])
     nClasses=len([subdir for subdir, _, _ in walk(inputPath)])
     for subdir, _, files in tqdm(walk(inputPath),total=nClasses):
         for file in tqdm(files):
+            # Get name and extension of file
+            name, ext = splitext(file)
             # Build output file folder
-            classDir = subdir.split('\\')[-1]
+            classDir = classNameFunction(subdir,name)
             outputFolder = fullfile(outputPath, classDir)
             # Create folder if it doesn't exist
             makedirs(outputFolder,exist_ok=True)
-            # Get name and extension of file
-            name, ext = splitext(file)
             # Process image and save
             img = Image.open(fullfile(subdir,file))
             if processingFunction is not None:
@@ -58,13 +72,25 @@ if __name__ == '__main__':
     inputPath=fullfile(baseInput,'DatasetMerge')
     baseOutput='D:\\Dataset_NAE_CAM'
     outputPath=fullfile(baseOutput,'DatasetMerge_PNG')
-    outputFormat='png'
     '''
     # V2: Apply a processing function to all images in frames_raw
+    '''
     basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM'
     inputPath=fullfile(basePath,'frames_raw')
     outputPath=fullfile(basePath,'frames_raw_crop_2') # 'frames_raw_crop'
-    outputFormat='png'
+    '''
+    '''
+    # V3: Apply the processing to the YOLO diatoms dataset from Alberto
+    basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\dataset_lucia_di_yolo'
+    inputPath=fullfile(basePath,'images')
+    outputPath=fullfile(basePath,'dataset_processed')
+    '''
+    # V4: Apply the processing to the cyano dataset for Alberto
+    basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+    inputPath=fullfile(basePath,'Cyano')
+    outputPath=fullfile(basePath,'dataset_cyano_processed')
 
-    convertAndProcessImages(inputPath,outputPath,outputFormat,
-                            processingFunction=cropDiatomObject)
+
+    convertAndProcessImages(inputPath,outputPath,
+                            processingFunction=resizeImage,
+                            classNameFunction=getClassFromDirname)

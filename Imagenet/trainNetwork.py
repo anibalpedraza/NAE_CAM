@@ -10,13 +10,25 @@ from time import strftime
 from os.path import join as fullfile
 from os import makedirs
 
-networkModelName = 'InceptionV3' #'EfficientNetB0' #'Xception'
+networkModelName = 'EfficientNetB0' # 'InceptionV3' 'EfficientNetB0' #'Xception'
 
 # Load the dataset from custom directory and classes
 #basePath='D:\\Dataset_NAE_CAM'
+'''
 basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM'
 datasetPath=fullfile(basePath,'DatasetMerge_PNG')
 nClasses=46
+'''
+'''
+basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\dataset_lucia_di_yolo'
+datasetPath=fullfile(basePath,'dataset_processed')
+nClasses=10
+'''
+basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+datasetPath=fullfile(basePath,'dataset_cyano_processed')
+nClasses=5
+
+
 batchSize=16
 validationSplit=0.2
 sample_size = len(list(pathlib.Path(datasetPath).rglob('./*')))
@@ -115,7 +127,7 @@ model.save(outputModelName)
 
 # Load the model and testing
 model = tf.keras.models.load_model(outputModelName)
-model.summary()
+#model.summary()
 model.evaluate(validation_generator)
 
 print('Training ended')
