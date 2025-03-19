@@ -23,16 +23,16 @@ import cv2
 
 def get_img_array_path(img_path, size):
     # `img` is a PIL image of size 299x299
-    img = cv2.imread(img_path) #BGR
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) #RGB
-    img_resized = cv2.resize(img_rgb, size)
+    #img = cv2.imread(img_path) #BGR
+    #img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) #RGB
+    #img_resized = cv2.resize(img_rgb, size)
 
-    #img = keras.preprocessing.image.load_img(img_path, target_size=size)
+    img = keras.preprocessing.image.load_img(img_path, target_size=size)
     # `array` is a float32 Numpy array of shape (299, 299, 3)
-    #array = keras.preprocessing.image.img_to_array(img)
+    array = keras.preprocessing.image.img_to_array(img)
     # We add a dimension to transform our array into a "batch"
     # of size (1, 299, 299, 3)
-    array = np.expand_dims(img_resized, axis=0)
+    array = np.expand_dims(array, axis=0)
     return array
 
 def get_img_array(img_array):
