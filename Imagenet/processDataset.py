@@ -85,11 +85,18 @@ if __name__ == '__main__':
     inputPath=fullfile(basePath,'images')
     outputPath=fullfile(basePath,'dataset_processed')
     '''
+    '''
     # V4: Apply the processing to the cyano dataset for Alberto
     basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
     inputPath=fullfile(basePath,'Cyano')
     outputPath=fullfile(basePath,'dataset_cyano_processed')
-
+    '''
+    # V5: Apply the processing to the biopsy dataset from Gloria
+    fold='test' #'train'
+    nClasses=4
+    basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Biopsy'
+    inputPath=fullfile(basePath,'Biopsy_'+str(nClasses)+'classes','dataset_biopsy_'+str(nClasses)+'classes_'+fold)
+    outputPath=fullfile(basePath,'Biopsy_'+str(nClasses)+'classes','dataset_biopsy_'+str(nClasses)+'classes_'+fold+'_processed')
 
     convertAndProcessImages(inputPath,outputPath,
                             processingFunction=resizeImage,
