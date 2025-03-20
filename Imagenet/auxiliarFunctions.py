@@ -466,7 +466,7 @@ def saveResults(list_of_images, imagen_data, exec_ID='', type=''):
         makedirs(imagePath, exist_ok=True)
         file_name =  fullfile(imagePath,'gradCam_example_%s.jpg' % (img_id))
     else:
-        imagePath=fullfile('ressults','gradCam_examples_'+str(exec_ID),'ArtificialAdversarial'+str(type))
+        imagePath=fullfile('results','gradCam_examples_'+str(exec_ID),'ArtificialAdversarial'+str(type))
         makedirs(imagePath, exist_ok=True)
         file_name = fullfile(imagePath,'gradCam_example_%s_attack_method-%s.jpg' % (img_id, imagen_data[1].attackName) )
 
@@ -484,12 +484,12 @@ def plotDifferenceBetweenImages(original_img, adv_img, exec_ID=''):
     plt.suptitle(suptitle)
     if original_img.advNatural == False :
         try :
-            os.mkdir('gradCam_examples_%s/Difference_between_orig_adv_method-%s' % (exec_ID, adv_img.attackName))
+            os.mkdir('results/gradCam_examples_%s/Difference_between_orig_adv_method-%s' % (exec_ID, adv_img.attackName))
         except OSError as e :
             if e.errno != errno.EEXIST :
                 raise
 
-        File_name = 'gradCam_examples_%s/Difference_between_orig_adv_method-%s/Difference_image-%s.jpg' % (exec_ID, adv_img.attackName, original_img.name)
+        File_name = 'results/gradCam_examples_%s/Difference_between_orig_adv_method-%s/Difference_image-%s.jpg' % (exec_ID, adv_img.attackName, original_img.name)
         plt.savefig(File_name)
     plt.close()
 
@@ -738,17 +738,17 @@ def printResultsPerImage(orig, adv):
 
 def createDirs(exec_ID, type='', onebyone=False):
     try :
-        os.mkdir('gradCam_examples_%s' % (exec_ID))
+        os.mkdir('results/gradCam_examples_%s' % (exec_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
     try :
-        os.mkdir('gradCam_examples_%s/NaturalAdversarial%s' % (exec_ID, type) )
+        os.mkdir('results/gradCam_examples_%s/NaturalAdversarial%s' % (exec_ID, type) )
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
     try :
-        os.mkdir('gradCam_examples_%s/ArtificialAdversarial%s' % (exec_ID, type) )
+        os.mkdir('results/gradCam_examples_%s/ArtificialAdversarial%s' % (exec_ID, type) )
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise

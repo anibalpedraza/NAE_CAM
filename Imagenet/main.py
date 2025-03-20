@@ -23,7 +23,7 @@ def train_step(model, images, labels):
 # DEPRECATED: executeGradCam(num, classifier, epsilon, n_iter):
 # https://stackoverflow.com/questions/66182884/how-to-implement-grad-cam-on-a-trained-network
 
-def executeGradCam(orig, adv) :
+def executeGradCam(model, orig, adv) :
     # Prepare image
     list_img = []  # Orig, adversaria
     list_img.append(orig)
@@ -108,7 +108,7 @@ def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, Networ
 
     for atck in range(0, len(ATTACK_NAME)):
         for num in range(0, NUM_IMG):
-            img_figure, list_img_data = executeGradCam(img_test[num], img_adv[num])
+            img_figure, list_img_data = executeGradCam(model,img_test[num], img_adv[num])
             aux.saveResults(img_figure, list_img_data, EXECUTION_ID)
             aux.plotDifferenceBetweenImages(img_test[num], img_adv[num], EXECUTION_ID)
     aux.calculatePercentageNaturalAdversarial(img_test)
@@ -129,17 +129,21 @@ if __name__ == '__main__':
     # ------------------------ Constantes ---------------------------------------
     #BASE_PATH='D:\\Dataset_NAE_CAM'
     #BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM'
-    BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+    #BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+    BASE_PATH='D:\\Dataset_NAE_CAM_Cyano'
 
-    fovFolder='FOVs_Alberto_v2'
-    fovName=['FOV_Phormidium4','FOV_Phormidium4','FOV_Raphidiopsis1',
-             'FOV_Tolypothrix1','FOV_Tolypothrix2'] #'FOV_Raphidiopsis1'
+    fovFolder='FOVs_Alberto_v3'
+    fovName=['FOV_Dolichospermum1','FOV_Phormidium1','FOV_Phormidium2',
+             'FOV_Phormidium3','FOV_Phormidium4','FOV_Phormidium5',
+             'FOV_Raphidiopsis1','FOV_Tolypothrix1','FOV_Tolypothrix2'] #'FOV_Raphidiopsis1'
 
     NUM_CLASSES = 5 #(Cyano) # Diatoms: 46 #imagenet=1000
-    realID=[2,2,3,4,4] #3 #(3: Raphidiopsis) #(4: Tolypothrix) # 13: 'Cymbella' #Default: 'n04557648'
+    realID=[0,2,2,
+            2,2,2,
+            3,4,4] #3 #(3: Raphidiopsis) #(4: Tolypothrix) # 13: 'Cymbella' #Default: 'n04557648'
 
     #EPSILON = [20000, 30000]
-    ATTACK_NAME = ['FastGradientMethod','ProjectedGradientDescent','BoundaryAttack']
+    ATTACK_NAME = ['FastGradientMethod']#,'ProjectedGradientDescent','BoundaryAttack']
     NetworkModelName = 'EfficientNetB0' # 'InceptionV3' # 'EfficientNetB0' #'Xception'
     timestamp = '20250225_171006' #'20240730_122157' #'20240730_130240' #'20240730_122157' #'20240729_134137'
     
