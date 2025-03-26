@@ -13,7 +13,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 import pandas as pd
 
-def main(timestamp, networkModelName, datasetPath, basePath, nClasses):
+def main(timestamp, networkModelName, datasetPath, basePath):
     
     # Load the dataset from custom directory and classes
     batchSize=16
@@ -41,11 +41,12 @@ def main(timestamp, networkModelName, datasetPath, basePath, nClasses):
                                                             target_size=imageSize,
                                                             batch_size=batchSize,
                                                             seed=13,
-                                                            class_mode='categorical')
+                                                            class_mode='categorical',
+                                                            shuffle=False)
 
     # Load the model
     print('Loading model...')
-    logdir = fullfile(basePath,"logs", timestamp)
+    logdir = fullfile(basePath,"logs", timestamp+"_"+networkModelName)
     outputModelPath=fullfile(basePath,"checkpoints")
     outputModelName=fullfile(outputModelPath,timestamp+"_"+networkModelName+"_model_base.h5")
 
@@ -66,16 +67,16 @@ def main(timestamp, networkModelName, datasetPath, basePath, nClasses):
 
     # Get the confusion matrix
     cm = confusion_matrix(y_true, y_pred)
-    print(cm)
+    #print(cm)
 
     # Get the classification report
-    print(classification_report(y_true, y_pred, target_names=test_generator.class_indices))
+    #print(classification_report(y_true, y_pred, target_names=test_generator.class_indices))
 
     # Get the accuracy
     print('Accuracy: ', accuracy_score(y_true, y_pred))
 
     # Save confusion matrix and report to csv files
-    resultsPath=fullfile(basePath,"results",timestamp)
+    resultsPath=fullfile(basePath,"results",timestamp+"_"+networkModelName)
     makedirs(resultsPath,exist_ok=True)
     print('Saving confusion matrix and report...')
     cm_df = pd.DataFrame(cm, index = test_generator.class_indices.keys(), columns = test_generator.class_indices.keys())
