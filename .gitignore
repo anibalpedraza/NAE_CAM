@@ -133,3 +133,5 @@ dmypy.json
 
 *.jpg
 *.pkl
+
+results/

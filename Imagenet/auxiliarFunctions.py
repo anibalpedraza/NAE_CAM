@@ -462,11 +462,11 @@ def saveResults(list_of_images, imagen_data, exec_ID='', type=''):
     img_id = imagen_data[0].name
     img_id = img_id.replace('.png', '')
     if imagen_data[0].advNatural:
-        imagePath=fullfile('results','gradCam_examples_'+str(exec_ID),'NaturalAdversarial'+str(type))
+        imagePath=fullfile('results','gradCam',str(exec_ID),'NaturalAdversarial'+str(type))
         makedirs(imagePath, exist_ok=True)
         file_name =  fullfile(imagePath,'gradCam_example_%s.jpg' % (img_id))
     else:
-        imagePath=fullfile('results','gradCam_examples_'+str(exec_ID),'ArtificialAdversarial'+str(type))
+        imagePath=fullfile('results','gradCam',str(exec_ID),'ArtificialAdversarial'+str(type))
         makedirs(imagePath, exist_ok=True)
         file_name = fullfile(imagePath,'gradCam_example_%s_attack_method-%s.jpg' % (img_id, imagen_data[1].attackName) )
 
@@ -484,12 +484,12 @@ def plotDifferenceBetweenImages(original_img, adv_img, exec_ID=''):
     plt.suptitle(suptitle)
     if original_img.advNatural == False :
         try :
-            os.mkdir('results/gradCam_examples_%s/Difference_between_orig_adv_method-%s' % (exec_ID, adv_img.attackName))
+            os.mkdir('results/gradCam/%s/Difference_between_orig_adv_method-%s' % (exec_ID, adv_img.attackName))
         except OSError as e :
             if e.errno != errno.EEXIST :
                 raise
 
-        File_name = 'results/gradCam_examples_%s/Difference_between_orig_adv_method-%s/Difference_image-%s.jpg' % (exec_ID, adv_img.attackName, original_img.name)
+        File_name = 'results/gradCam/%s/Difference_between_orig_adv_method-%s/Difference_image-%s.jpg' % (exec_ID, adv_img.attackName, original_img.name)
         plt.savefig(File_name)
     plt.close()
 
@@ -585,7 +585,7 @@ def calculatePercentageNaturalAdversarial(img_test):
 
 def createCsvFile(filename, fieldnames):
     #Comprobamos si existe el archivo
-    list_files_names = os.listdir("C:/Users/User/TFG-repository/Imagenet/")
+    list_files_names = os.listdir("results")
     csvName = [x for x in list_files_names if filename+".csv" in x]
     if csvName == []:
         with open(filename, 'w', newline='') as csvfile:
@@ -605,7 +605,7 @@ def addRowToCsvFile(filename, fieldnames, data):
 def saveBoxPlot(heatmap_array, img_data, DATA_ID, violin=False, atck='Adv. Artificiales'):
     #https://python-charts.com/es/distribucion/box-plot-matplotlib/#:~:text=Eliminar%20outliers,el%20argumento%20showfliers%20como%20False%20.
     try :
-        os.mkdir('graficas-%s' % (DATA_ID))
+        os.mkdir('results\\graficas\\%s' % (DATA_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
@@ -636,12 +636,12 @@ def saveBoxPlot(heatmap_array, img_data, DATA_ID, violin=False, atck='Adv. Artif
     plt.title(title)
     plt.subplots_adjust(bottom=0.1, right=0.97)
 
-    plt.savefig("graficas-%s/BoxPlot_" % (DATA_ID) + type + id)
+    plt.savefig("results\\graficas\\%s/BoxPlot_" % (DATA_ID) + type + id)
     plt.clf()
 
 def saveHistogram(heatmap_array, img_data, DATA_ID, atck=''):
     try :
-        os.mkdir('graficas-%s' % (DATA_ID))
+        os.mkdir('results\\graficas\\%s' % (DATA_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
@@ -663,13 +663,13 @@ def saveHistogram(heatmap_array, img_data, DATA_ID, atck=''):
     plt.xticks(rotation=45)
     plt.subplots_adjust(bottom=0.14, right=0.97)
 
-    plt.savefig("graficas-%s/histogram_" % (DATA_ID) + type + id)
+    plt.savefig("results\\graficas\\%s/histogram_" % (DATA_ID) + type + id)
     plt.clf()
     #fig = sm.qqplot(heatmap_array, line='45')
 
 def saveBarWithError(mean_data, freq_data, std_data, img_data, DATA_ID, atck=''):
     try :
-        os.mkdir('graficas-%s' % (DATA_ID))
+        os.mkdir('results\\graficas\\%s' % (DATA_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
@@ -692,12 +692,12 @@ def saveBarWithError(mean_data, freq_data, std_data, img_data, DATA_ID, atck='')
     elif type == "adv. artificiales,":
         type = "AdvArtificiales"
 
-    plt.savefig("graficas-%s/histogram_500img_" % (DATA_ID) + type + atck)
+    plt.savefig("results\\graficas\\%s/histogram_500img_" % (DATA_ID) + type + atck)
     plt.clf()
 
 def saveMeanLineWithError(mean500_Orig, mean500_AdvNat, mean500_AdvArt, freq_orig, freq_nat, freq_art, std_orig, std_nat, std_art, DATA_ID, atck=''):
     try :
-        os.mkdir('graficas-%s' % (DATA_ID))
+        os.mkdir('results\\graficas\\%s' % (DATA_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
@@ -714,7 +714,7 @@ def saveMeanLineWithError(mean500_Orig, mean500_AdvNat, mean500_AdvArt, freq_ori
     plt.legend(["Original", "Adv. Natural", "Adv. Artificial: %s" % (atck)] )
     plt.subplots_adjust(bottom=0.1, right=0.97)
 
-    plt.savefig("graficas-%s/summary_MeanLine_Freq_Error" % (DATA_ID))
+    plt.savefig("results\\graficas\\%s/summary_MeanLine_Freq_Error" % (DATA_ID))
     plt.clf()
 def defineTypeOfAdversarial(img):
     if img.attackName == "":
@@ -738,33 +738,33 @@ def printResultsPerImage(orig, adv):
 
 def createDirs(exec_ID, type='', onebyone=False):
     try :
-        os.mkdir('results/gradCam_examples_%s' % (exec_ID))
+        os.mkdir('results/gradCam/%s' % (exec_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
     try :
-        os.mkdir('results/gradCam_examples_%s/NaturalAdversarial%s' % (exec_ID, type) )
+        os.mkdir('results/gradCam/%s/NaturalAdversarial%s' % (exec_ID, type) )
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
     try :
-        os.mkdir('results/gradCam_examples_%s/ArtificialAdversarial%s' % (exec_ID, type) )
+        os.mkdir('results/gradCam/%s/ArtificialAdversarial%s' % (exec_ID, type) )
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
     if onebyone:
         try :
-            os.makedirs('variablesIndividuales_%s' % (exec_ID))
+            os.makedirs('results\\variablesIndividuales_%s' % (exec_ID))
         except OSError as e :
             if e.errno != errno.EEXIST :
                 raise
         try :
-            os.mkdir('variablesIndividuales_%s/NaturalAdversarial' % (exec_ID) )
+            os.mkdir('results\\variablesIndividuales_%s/NaturalAdversarial' % (exec_ID) )
         except OSError as e :
             if e.errno != errno.EEXIST :
                 raise
         try :
-            os.mkdir('variablesIndividuales_%s/ArtificialAdversarial' % (exec_ID) )
+            os.mkdir('results\\variablesIndividuales_%s/ArtificialAdversarial' % (exec_ID) )
         except OSError as e :
             if e.errno != errno.EEXIST :
                 raise
