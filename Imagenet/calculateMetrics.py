@@ -11,18 +11,38 @@ import gradCamInterface
 import auxiliarFunctions as aux
 import auxiliarMetricsFunctions as mf
 
+from os.path import join as fullfile
+from os import listdir
+
 #https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 #https://www.jmp.com/es_es/statistics-knowledge-portal/t-test/two-sample-t-test.html
 # ------------------------ Constantes ---------------------------------------
-DATA_ID = "Xception" #EfficientNetB0
-DATA_PATH = "C:/Users/User/TFG-repository/Imagenet/case1/ArtificialAdversarial-BoundaryAttack_%s/" % (DATA_ID)#"D:/TFG_VISILAB_FOTOS/case01_waterBottle/results_%s/variablesIndividuales_Test_%s/" % (DATA_ID, DATA_ID)
-ATCK_NAME = ["BoundaryAttack"]#"BoundaryAttack" ["BoundaryAttack", "FastGradientMethod", "ProjectedGradientDescent"]HopSkipJump
+ATCK_NAME = ["FastGradientMethod"]#"BoundaryAttack" ["BoundaryAttack", "FastGradientMethod", "ProjectedGradientDescent"]HopSkipJump
 NUM_ATCKS = len(ATCK_NAME) #Numero de ataques distintos que se usaron cuando se guardaron las imagenes
-sorted_data, name_list = aux.loadImagesSorted(DATA_PATH, NUM_ATCKS)
+
+timestamp='20250225_171006'
+networkName = "EfficientNetB0" #"Xception" #EfficientNetB0
+fovName='FOV_Phormidium1'
+DATA_ID=timestamp+"_OpenFlexure_"+networkName+'_'+fovName
+# Search all pickles files matching baseName in the results/variables folder
+pickleFileNamesList=[]
+for file in listdir(fullfile('results','variables')):
+    if file.startswith(DATA_ID) and file.endswith('.pkl'):
+        pickleFileNamesList.append(fullfile('results','variables',file))
+# Load all files and merge them into a single list
+sorted_data = []
+for pickleFileName in pickleFileNamesList:
+    sorted_data += aux.loadVariable(pickleFileName)
+
+#DATA_PATH = "C:/Users/User/TFG-repository/Imagenet/case1/ArtificialAdversarial-BoundaryAttack_%s/" % (DATA_ID)#"D:/TFG_VISILAB_FOTOS/case01_waterBottle/results_%s/variablesIndividuales_Test_%s/" % (DATA_ID, DATA_ID)
+#sorted_data, name_list = aux.loadImagesSorted(DATA_PATH, NUM_ATCKS)
+name_list = []
+for i in range(0, len(sorted_data)):
+    name_list.append(sorted_data[i].name)
 NUM_IMG = len(sorted_data)
 
 # ------------------------ Operaciones --------------------------------------
-calculate_metrics = False #tarda 'poco'
+calculate_metrics = True #tarda 'poco'
 execute_Histogram = False #tarda mucho
 execute_BoxPlot = False
 
