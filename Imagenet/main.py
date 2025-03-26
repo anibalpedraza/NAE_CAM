@@ -54,9 +54,17 @@ def executeGradCam(model, orig, adv) :
 def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, NetworkModelName, timestamp):
     # Initial variables
 
+    if NetworkModelName == 'EfficientNetB0':
+        IMG_SIZE = (224, 224)
+        IMG_SHAPE = (224, 224, 3)
+    else:
+        IMG_SIZE = (299, 299)
+        IMG_SHAPE = (299, 299, 3)
+
+
     #EFFICIENTNETB0 IMG_SIZE = (224, 224)#IMG_SHAPE = (224, 224, 3)
-    IMG_SIZE = (224, 224)#(299, 299)
-    IMG_SHAPE = (224, 224, 3)#(299, 299, 3)
+    #IMG_SIZE = (224, 224)#(299, 299)
+    #IMG_SHAPE = (224, 224, 3)#(299, 299, 3)
     LR = 0.01 #Learning Rate usado en el optimizador
 
     #IMG_PATH = "C:/Users/User/TFG-repository/Imagenet/movil/"#cambiar parametros de entrada de loadImages segun si son de imagenet o no
@@ -129,25 +137,52 @@ if __name__ == '__main__':
     # ------------------------ Constantes ---------------------------------------
     #BASE_PATH='D:\\Dataset_NAE_CAM'
     #BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM'
-    #BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
-    BASE_PATH='D:\\Dataset_NAE_CAM_Cyano'
-
+    
+    # Cyano
+    
+    #BASE_PATH='D:\\Dataset_NAE_CAM_Cyano'
+    BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+    #timestamp = '20250225_171006' #'20240730_122157' #'20240730_130240' #'20240730_122157' #'20240729_134137'
     fovFolder='FOVs_Alberto_v3'
     fovName=['FOV_Dolichospermum1','FOV_Phormidium1','FOV_Phormidium2',
              'FOV_Phormidium3','FOV_Phormidium4','FOV_Phormidium5',
              'FOV_Raphidiopsis1','FOV_Tolypothrix1','FOV_Tolypothrix2'] #'FOV_Raphidiopsis1'
-
-    NUM_CLASSES = 5 #(Cyano) # Diatoms: 46 #imagenet=1000
     realID=[0,2,2,
             2,2,2,
-            3,4,4] #3 #(3: Raphidiopsis) #(4: Tolypothrix) # 13: 'Cymbella' #Default: 'n04557648'
-
-    #EPSILON = [20000, 30000]
-    ATTACK_NAME = ['FastGradientMethod']#,'ProjectedGradientDescent','BoundaryAttack']
-    NetworkModelName = 'EfficientNetB0' # 'InceptionV3' # 'EfficientNetB0' #'Xception'
-    timestamp = '20250225_171006' #'20240730_122157' #'20240730_130240' #'20240730_122157' #'20240729_134137'
+            3,4,4]
     
-    # Execute main function
-    for indexExp in range(0, len(fovName)):
-        main(BASE_PATH, fovFolder, fovName[indexExp], NUM_CLASSES, realID[indexExp],
-             ATTACK_NAME, NetworkModelName, timestamp)
+    timestampList=['20250325_140731','20250325_141747','20250325_143051']
+    NetworkModelNameList = ['InceptionV3','Xception','EfficientNetB0']
+
+    ATTACK_NAME = ['Wasserstein','ZooAttack']#'CarliniLInfMethod',','BasicIterativeMethod',['FastGradientMethod','ProjectedGradientDescent','BoundaryAttack']
+
+    for timestamp, NetworkModelName in zip(timestampList, NetworkModelNameList):
+        for indexExp in range(0, len(fovName)):
+            main(BASE_PATH, fovFolder, fovName[indexExp], 5, realID[indexExp], 
+                 ATTACK_NAME, NetworkModelName, timestamp)
+    
+    # Biopsy V1
+    '''
+    NUM_CLASSES_LIST = [2,4] #(Cyano) # Diatoms: 46 #imagenet=1000
+    timestamp_list = ['20250311_124455','20250311_125705'] #'20240730_122157' #'20240730_130240' #'20240730_122157' #'20240729_134137'
+    
+    for NUM_CLASSES,timestamp in zip(NUM_CLASSES_LIST,timestamp_list):
+        BASE_PATH='D:\\Dataset_NAE_CAM_Biopsy\\Biopsy_'+str(NUM_CLASSES)+'classes'
+        
+        fovFolder='FOVs_Lucia_v2'
+        fovName=['FOV_A-1-02_'+str(NUM_CLASSES)+'-classes','FOV_B-15-3419_'+str(NUM_CLASSES)+'-classes','FOV_B-15-4170_'+str(NUM_CLASSES)+'-classes',
+                'FOV_SESCAM-13-HE_'+str(NUM_CLASSES)+'-classes','FOV_SESCAM-14-HE_'+str(NUM_CLASSES)+'-classes','FOV_SESCAM-15-HE_'+str(NUM_CLASSES)+'-classes']
+
+        realID=[1,1,1,
+                0,0,0]
+
+        #EPSILON = [20000, 30000]
+        ATTACK_NAME = ['FastGradientMethod']#,'ProjectedGradientDescent','BoundaryAttack']
+        NetworkModelName = 'EfficientNetB0' # 'InceptionV3' # 'EfficientNetB0' #'Xception'
+        
+        # Execute main function
+        for indexExp in range(0, len(fovName)):
+            main(BASE_PATH, fovFolder, fovName[indexExp], NUM_CLASSES, realID[indexExp],
+                ATTACK_NAME, NetworkModelName, timestamp)'
+    '''
+    # V3
