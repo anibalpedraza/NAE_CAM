@@ -138,10 +138,16 @@ if __name__ == '__main__':
     #BASE_PATH='D:\\Dataset_NAE_CAM'
     #BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM'
     
+
+    envPath='/datasets/' # Docker
+    #envPath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB' # Alienware
+    #envPath='D:\\VISILAB\\NAE_CAM' # Kratos
+    #envPath='D:\\NAE_CAM' # PC
+
     # Cyano
     
     #BASE_PATH='D:\\Dataset_NAE_CAM_Cyano'
-    BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+    BASE_PATH=fullfile(envPath,'Dataset_NAE_CAM_Cyano')
     #timestamp = '20250225_171006' #'20240730_122157' #'20240730_130240' #'20240730_122157' #'20240729_134137'
     fovFolder='FOVs_Alberto_v3'
     fovName=['FOV_Dolichospermum1','FOV_Phormidium1','FOV_Phormidium2',

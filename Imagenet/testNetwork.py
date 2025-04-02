@@ -92,6 +92,12 @@ def main(timestamp, networkModelName, datasetPath, basePath):
 if __name__ == "__main__":
     # Load the dataset from custom directory and classes
     #basePath='D:\\Dataset_NAE_CAM'
+
+    envPath='/datasets/' # Docker
+    #envPath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB' # Alienware
+    #envPath='D:\\VISILAB\\NAE_CAM' # Kratos
+    #envPath='D:\\NAE_CAM' # PC
+
     '''
     basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM'
     datasetPath=fullfile(basePath,'DatasetMerge_PNG')
@@ -109,11 +115,11 @@ if __name__ == "__main__":
     '''
     nClasses=2
     fold='test' #'train'
-    basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Biopsy\\Biopsy_'+str(nClasses)+'classes'
+    basePath=fullfile(envPath,'Dataset_NAE_CAM_Biopsy','Biopsy_'+str(nClasses)+'classes')
     datasetPath=fullfile(basePath,'dataset_biopsy_'+str(nClasses)+'classes_'+fold+'_processed')
     
 
     networkModelName = 'EfficientNetB0' # 'InceptionV3' 'EfficientNetB0' #'Xception'
     timestamp=strftime("20250311_124455") # 4 classes: "20250311_125705"
 
-    main(timestamp, networkModelName, datasetPath, basePath, nClasses)
+    main(timestamp, networkModelName, datasetPath, basePath)

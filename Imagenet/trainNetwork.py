@@ -178,11 +178,16 @@ if __name__ == '__main__':
    nClasses=4'
    '''
 
-   cyanoDatasetBasePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+   envPath='/datasets/' # Docker
+   #envPath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB' # Alienware
+   #envPath='D:\\VISILAB\\NAE_CAM' # Kratos
+   #envPath='D:\\NAE_CAM' # PC
+
+   cyanoDatasetBasePath=fullfile(envPath,'Dataset_NAE_CAM_Cyano')
    cyanoDatasetPath=fullfile(cyanoDatasetBasePath,'dataset_cyano_processed')
    cyanoNClasses=5
 
-   biopsyDatasetBasePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Biopsy\\Biopsy_4classes'
+   biopsyDatasetBasePath=fullfile(envPath,'Dataset_NAE_CAM_Biopsy','Biopsy_4classes')
    biopsyDatasetPath=fullfile(biopsyDatasetBasePath,'dataset_biopsy_4classes_train_processed')
    biopsyNClasses=4
 
