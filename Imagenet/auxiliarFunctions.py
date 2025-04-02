@@ -4,7 +4,6 @@ from Imagen import Imagen
 import gradCamInterface
 from selectOrigImages import sortImgList, obtainImageNumber
 
-import cv2
 import csv
 import os
 import math
@@ -18,18 +17,19 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
-import statsmodels.api as sm
-from keras.layers import Input
+from keras.api.layers import Input
 #Mas ataques: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#fast-gradient-method-fgm
 from art.attacks.evasion import FastGradientMethod, BasicIterativeMethod, ProjectedGradientDescent, CarliniLInfMethod, HopSkipJump, Wasserstein, ZooAttack, BoundaryAttack
-from keras.applications.efficientnet import EfficientNetB0, decode_predictions as decode_efficientnet0
-from keras.applications.xception import Xception, preprocess_input as preprocess_xception, decode_predictions as decode_xception
-from keras.applications.inception_v3 import InceptionV3, preprocess_input as preprocess_inceptionv3, decode_predictions as decode_inceptionv3
-from keras.applications.inception_resnet_v2 import InceptionResNetV2, preprocess_input as preprocess_inceptionresnetv2, decode_predictions as decode_inceptionresnetv2
-from keras.applications.vgg16 import VGG16, preprocess_input as preprocess_vgg16, decode_predictions as decode_vgg16
-from keras.applications.mobilenet import MobileNet, preprocess_input as preprocess_mobileNet, decode_predictions as decode_mobileNet
+from keras.api.applications.efficientnet import EfficientNetB0, decode_predictions as decode_efficientnet0
+from keras.api.applications.xception import Xception, preprocess_input as preprocess_xception, decode_predictions as decode_xception
+from keras.api.applications.inception_v3 import InceptionV3, preprocess_input as preprocess_inceptionv3, decode_predictions as decode_inceptionv3
+from keras.api.applications.inception_resnet_v2 import InceptionResNetV2, preprocess_input as preprocess_inceptionresnetv2, decode_predictions as decode_inceptionresnetv2
+from keras.api.applications.vgg16 import VGG16, preprocess_input as preprocess_vgg16, decode_predictions as decode_vgg16
+from keras.api.applications.mobilenet import MobileNet, preprocess_input as preprocess_mobileNet, decode_predictions as decode_mobileNet
+from keras.api.applications.convnext import ConvNeXtTiny, preprocess_input as preprocess_convnext, decode_predictions as decode_convnext
 
 import tensorflow as tf
+from keras.api.saving import load_model
 
 from os.path import join as fullfile
 from os import makedirs
@@ -340,7 +340,7 @@ def loadVariable(filename):
          return pickle.load(f)
 def getNetworkModel(NetworkModelName,customModel=False,modelPath=''):
     if customModel:
-        return tf.keras.models.load_model(modelPath)
+        return load_model(modelPath)
     else:
         if NetworkModelName == 'EfficientNetB0' or NetworkModelName == 'efficientNetB0':
             return EfficientNetB0(weights="imagenet", include_top=True, classes=1000, input_shape=(224, 224, 3))
@@ -354,6 +354,8 @@ def getNetworkModel(NetworkModelName,customModel=False,modelPath=''):
             return VGG16(include_top=True, weights="imagenet", input_tensor=Input(shape=(224, 224, 3)))
         elif NetworkModelName == 'MobileNet' or NetworkModelName == 'mobileNet':
             return MobileNet(include_top=True, weights="imagenet", input_tensor=Input(shape=(224, 224, 3)))
+        elif NetworkModelName == 'ConvNeXtTiny' or NetworkModelName == 'convnexttiny':
+            return ConvNeXtTiny(include_top=True, weights="imagenet", input_tensor=Input(shape=(224, 224, 3)))
 
 def preprocess_input(NetworkModelName, img_array):
     if NetworkModelName == 'EfficientNetB0' or NetworkModelName == 'efficientNetB0':
@@ -368,6 +370,8 @@ def preprocess_input(NetworkModelName, img_array):
         return preprocess_vgg16(img_array)
     elif NetworkModelName == 'MobileNet' or NetworkModelName == 'mobileNet' :
         return preprocess_mobileNet(img_array)
+    elif NetworkModelName == 'ConvNeXtTiny' or NetworkModelName == 'convnexttiny':
+        return preprocess_convnext(img_array)
 
 def decode_predictions(NetworkModelName, preds):
     if NetworkModelName == 'EfficientNetB0' or NetworkModelName == 'efficientNetB0' or NetworkModelName == 'efficientnetb0':
@@ -382,6 +386,8 @@ def decode_predictions(NetworkModelName, preds):
         return decode_vgg16(preds, top=1)
     elif NetworkModelName == 'MobileNet' or NetworkModelName == 'mobileNet':
         return decode_mobileNet(preds, top=1)
+    elif NetworkModelName == 'ConvNeXtTiny' or NetworkModelName == 'convnexttiny':
+        return decode_convnext(preds, top=1)
 
 def getLastConvLayerName(NetworkModelName):
     if NetworkModelName == 'EfficientNetB0' or NetworkModelName == 'efficientNetB0':
@@ -396,6 +402,8 @@ def getLastConvLayerName(NetworkModelName):
         return "block5_conv3" #no tiene activacion, parametros 2359808, el que tiene param 0 es block5_pool
     elif NetworkModelName == 'MobileNet' or NetworkModelName == 'mobileNet' :
         return "conv_preds" #conv_pw_13_relu param:0/ conv_pw_13 param: 1048576 conv_preds param:1025000
+    elif NetworkModelName == 'ConvNeXtTiny' or NetworkModelName == 'convnexttiny':
+        return "classifier"
 
 def getAttackMethod(name, classifier, epsilon):
 #attackName = ['FastGradientMethod', 'BasicIterativeMethod', 'ProjectedGradientDescent', 'CarliniLInfMethod', 'HopSkipJump']

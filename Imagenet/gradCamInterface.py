@@ -19,17 +19,16 @@ from tensorflow import keras
 # Display
 from IPython.display import Image, display
 import matplotlib.cm as cm
-import cv2
+
+# Keras 3
+from keras.api.models import Model
+from keras.api.utils import load_img, img_to_array, array_to_img
 
 def get_img_array_path(img_path, size):
     # `img` is a PIL image of size 299x299
-    #img = cv2.imread(img_path) #BGR
-    #img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) #RGB
-    #img_resized = cv2.resize(img_rgb, size)
-
-    img = keras.preprocessing.image.load_img(img_path, target_size=size)
+    img = load_img(img_path, target_size=size)  # Actualización para Keras 3
     # `array` is a float32 Numpy array of shape (299, 299, 3)
-    array = keras.preprocessing.image.img_to_array(img)
+    array = img_to_array(img)  # Actualización para Keras 3
     # We add a dimension to transform our array into a "batch"
     # of size (1, 299, 299, 3)
     array = np.expand_dims(array, axis=0)
@@ -46,7 +45,7 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
     tf.data.experimental.enable_debug_mode()
     # First, we create a model that maps the input image to the activations
     # of the last conv layer as well as the output predictions
-    grad_model = tf.keras.models.Model(
+    grad_model = Model(
         [model.inputs], [model.get_layer(last_conv_layer_name).output, model.output]
     )
 #https://www.youtube.com/watch?v=6YZoZ9Vtez0&ab_channel=ConnorShorten
@@ -79,8 +78,8 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
 
 def save_and_display_gradcam_path(img_path, heatmap, cam_path="cam.jpg", alpha=0.4, color="jet"):
     # Load the original image
-    img = keras.preprocessing.image.load_img(img_path)
-    img = keras.preprocessing.image.img_to_array(img)
+    img = load_img(img_path)
+    img = img_to_array(img)
 
     superimposed_img = display_gradcam(img, heatmap, alpha, color)
     # Save the superimposed image
@@ -110,13 +109,13 @@ def display_gradcam(img, heatmap, alpha=0.4, color="jet"):
     jet_heatmap = jet_colors[heatmap]
 
     # Create an image with RGB colorized heatmap
-    jet_heatmap = keras.preprocessing.image.array_to_img(jet_heatmap)
+    jet_heatmap = array_to_img(jet_heatmap)  # Actualización para Keras 3
     jet_heatmap = jet_heatmap.resize((img.shape[1], img.shape[0]))
-    jet_heatmap = keras.preprocessing.image.img_to_array(jet_heatmap)
+    jet_heatmap = img_to_array(jet_heatmap)  # Actualización para Keras 3
 
     # Superimpose the heatmap on original image
     superimposed_img_array = jet_heatmap * alpha + img
-    superimposed_img = keras.preprocessing.image.array_to_img(superimposed_img_array)
+    superimposed_img = array_to_img(superimposed_img_array)  # Actualización para Keras 3
 
     # return Grad CAM
     return superimposed_img
@@ -132,9 +131,9 @@ def display_gray_gradcam(img, heatmap, superimposed=True):
     jet_heatmap = jet_colors[heatmap]
 
     # Create an image with RGB colorized heatmap
-    heatmap_img = keras.preprocessing.image.array_to_img(jet_heatmap)
+    heatmap_img = array_to_img(jet_heatmap)
     heatmap_img = heatmap_img.resize((img.shape[1], img.shape[0]))
-    heatmap_img = keras.preprocessing.image.img_to_array(heatmap_img)
+    heatmap_img = img_to_array(heatmap_img)
 
     if superimposed:
         superimposed_img_array = img*0
@@ -144,7 +143,7 @@ def display_gray_gradcam(img, heatmap, superimposed=True):
                 for col in range(0, img.shape[1]):
                     superimposed_img_array[row, col, channel]= img[row, col, channel]*round(heatmap_img[row, col, channel]/255, 2)
 
-        result = keras.preprocessing.image.array_to_img(superimposed_img_array)
+        result = array_to_img(superimposed_img_array)
     else:
         return heatmap_img
 

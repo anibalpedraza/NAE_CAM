@@ -6,11 +6,15 @@ import auxiliarFunctions as aux
 import os
 import errno
 import tensorflow as tf
-from tensorflow import keras
 #Mas ataques: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#fast-gradient-method-fgm
 from art.estimators.classification import TensorFlowV2Classifier
 
 from os.path import join as fullfile
+
+# Keras 3
+from keras.api.preprocessing.image import array_to_img
+from keras.api.optimizers import Adam
+from keras.api.losses import CategoricalCrossentropy
 
 # ------------------------ Funciones auxiliares ---------------------------------
 def train_step(model, images, labels):
@@ -40,7 +44,7 @@ def executeGradCam(model, orig, adv) :
         # Display heatmap. Ya esta entre 0-255
         gradCam_img = gradCamInterface.display_gradcam(list_img[ind].data, heatmap)
 
-        plot_img.append(keras.preprocessing.image.array_to_img(list_img[ind].data))
+        plot_img.append(array_to_img(list_img[ind].data))
         plot_img.append(gradCam_img)
 
     orig.addHeatmap(list_img[0].heatmap)
@@ -72,7 +76,7 @@ def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, Networ
     #EXECUTION_ID = "WebcamData_01" #Se usará para no sustituir variables de distintas ejecuciones
     IMG_PATH = fullfile(BASE_PATH, fovFolder, fovName, 'images')
     kindModel = 'base' #'finetuned'
-    networkCheckpointName= timestamp+'_'+NetworkModelName+'_model_'+kindModel+'.h5'
+    networkCheckpointName= timestamp+'_'+NetworkModelName+'_model_'+kindModel+'.keras'
 
     #EXECUTION_ID = timestamp+"WebcamData_"+NetworkModelName+"_02"#"_01"
     EXECUTION_ID = timestamp+"_OpenFlexure_"+NetworkModelName+"_"+fovName#"_01"
@@ -86,8 +90,8 @@ def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, Networ
     modelPath=fullfile(BASE_PATH,'checkpoints',networkCheckpointName)
     model = aux.getNetworkModel(NetworkModelName,customModel=True, modelPath=modelPath)
     model.trainable = False
-    optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
-    loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+    optimizer = Adam(learning_rate=LR)
+    loss_object = CategoricalCrossentropy(from_logits=False)
     classifier = TensorFlowV2Classifier(model=model, clip_values=(0, 1), nb_classes=NUM_CLASSES, input_shape=IMG_SHAPE, loss_object=loss_object, train_step=train_step)
 
     #Load Images
@@ -138,10 +142,15 @@ if __name__ == '__main__':
     #BASE_PATH='D:\\Dataset_NAE_CAM'
     #BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM'
     
+    envPath='/datasets/' # Docker
+    #envPath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB' # Alienware
+    #envPath='D:\\VISILAB\\NAE_CAM' # Kratos
+    #envPath='D:\\NAE_CAM' # PC
+
     # Cyano
     
     #BASE_PATH='D:\\Dataset_NAE_CAM_Cyano'
-    BASE_PATH='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+    BASE_PATH=fullfile(envPath,'Dataset_NAE_CAM_Cyano')
     #timestamp = '20250225_171006' #'20240730_122157' #'20240730_130240' #'20240730_122157' #'20240729_134137'
     fovFolder='FOVs_Alberto_v3'
     fovName=['FOV_Dolichospermum1','FOV_Phormidium1','FOV_Phormidium2',
@@ -151,10 +160,14 @@ if __name__ == '__main__':
             2,2,2,
             3,4,4]
     
-    timestampList=['20250325_140731','20250325_141747','20250325_143051']
-    NetworkModelNameList = ['InceptionV3','Xception','EfficientNetB0']
+    #timestampList=['20250325_140731','20250325_141747','20250325_143051']
+    #NetworkModelNameList = ['InceptionV3','Xception','EfficientNetB0']
 
-    ATTACK_NAME = ['Wasserstein','ZooAttack']#'CarliniLInfMethod',','BasicIterativeMethod',['FastGradientMethod','ProjectedGradientDescent','BoundaryAttack']
+    timestampList=['20250402_131439']#'20250402_131826','20250402_132035','20250402_131636']
+    NetworkModelNameList = ['ConvNeXtTiny']#'InceptionV3','Xception','EfficientNetB0']
+
+    #ATTACK_NAME = ['Wasserstein','ZooAttack']#'CarliniLInfMethod',','BasicIterativeMethod',['FastGradientMethod','ProjectedGradientDescent','BoundaryAttack']
+    ATTACK_NAME = ['FastGradientMethod']#,'ProjectedGradientDescent','BoundaryAttack']
 
     for timestamp, NetworkModelName in zip(timestampList, NetworkModelNameList):
         for indexExp in range(0, len(fovName)):
