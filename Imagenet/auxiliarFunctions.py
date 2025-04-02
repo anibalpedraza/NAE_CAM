@@ -403,7 +403,7 @@ def getLastConvLayerName(NetworkModelName):
     elif NetworkModelName == 'MobileNet' or NetworkModelName == 'mobileNet' :
         return "conv_preds" #conv_pw_13_relu param:0/ conv_pw_13 param: 1048576 conv_preds param:1025000
     elif NetworkModelName == 'ConvNeXtTiny' or NetworkModelName == 'convnexttiny':
-        return "classifier"
+        return "convnext_tiny_stage_3_block_2_pointwise_conv_2"
 
 def getAttackMethod(name, classifier, epsilon):
 #attackName = ['FastGradientMethod', 'BasicIterativeMethod', 'ProjectedGradientDescent', 'CarliniLInfMethod', 'HopSkipJump']
