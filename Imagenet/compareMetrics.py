@@ -45,8 +45,10 @@ def obtainListFromObjectMetricsData(metricsData, original = False):
 #https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 #https://docs.scipy.org/doc/scipy/reference/stats.html
 # ------------------------ Constantes ---------------------------------------
-DATA_PATH = "C:/Users/User/TFG-repository/Imagenet/case2/variables/"
-DATA_ID = "case2_full_test_"
+#DATA_PATH = "C:/Users/User/TFG-repository/Imagenet/case2/variables/"
+DATA_PATH='C:\\Users\\Aniba\\OneDrive - Universidad de Castilla-La Mancha\\Visilab 5.0\\Proyectos\\2_AdvsHarbinder\\Repos\\NAE_CAM\\results\\csv\\'
+#DATA_ID = "case2_full_test_"
+DATA_ID='20250225_171006_OpenFlexure_EfficientNetB0_FOV_Phormidium1'
 list_files_names = os.listdir(DATA_PATH)
 list_data = []
 var = []

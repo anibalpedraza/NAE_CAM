@@ -52,7 +52,7 @@ def main(networkModelName, datasetPath, basePath, nClasses):
                                                       seed=13,
                                                       class_mode='categorical',
                                                       subset='training',
-                                                      shuffle=False)
+                                                      shuffle=True)
    validation_generator = trainDatagen.flow_from_directory(datasetPath,
                                                          target_size=imageSize,
                                                          batch_size=batchSize,

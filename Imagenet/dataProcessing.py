@@ -40,7 +40,8 @@ def sortListOfImages(areMultipleAttacks, num):
     return sorted_list
 
 # ------------------------ Constantes ---------------------------------------
-DATA_PATH = "C:/Users/User/TFG-repository/Imagenet/variablesIndividuales_WebcamData_luzTest_InceptionResNetV2/"
+#DATA_PATH = "C:/Users/User/TFG-repository/Imagenet/variablesIndividuales_WebcamData_luzTest_InceptionResNetV2/"
+DATA_PATH='D:\\OneDrive\\OneDrive - Universidad de Castilla-La Mancha\\Visilab 5.0\\Proyectos\\2_AdvsHarbinder\\Repos\\NAE_CAM\\results\\variables'
 DATA_ID = ""
 NUM_ATCKS = 1 #Numero de ataques distintos que se usaron cuando se guardaron las imagenes
 NUM_EPS = 1  #Numero de epsilon distintos que se usaron cuando se guardaron las imagenes
@@ -111,3 +112,4 @@ for num in range(0, NUM_IMG):
 
     if execute_Histogram == True:
         #aux.saveHistogram(sorted_list, DATA_ID)
+        pass

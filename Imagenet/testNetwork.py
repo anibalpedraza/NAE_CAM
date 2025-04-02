@@ -44,6 +44,7 @@ def main(timestamp, networkModelName, datasetPath, basePath):
                                                             class_mode='categorical',
                                                             shuffle=False)
 
+    classNames=test_generator.class_indices.keys()
     # Load the model
     print('Loading model...')
     logdir = fullfile(basePath,"logs", timestamp+"_"+networkModelName)
@@ -66,7 +67,7 @@ def main(timestamp, networkModelName, datasetPath, basePath):
     y_pred = np.argmax(y_pred, axis=1)
 
     # Get the confusion matrix
-    cm = confusion_matrix(y_true, y_pred)
+    cm = confusion_matrix(y_true, y_pred, labels=range(len(classNames)))
     #print(cm)
 
     # Get the classification report
@@ -79,9 +80,9 @@ def main(timestamp, networkModelName, datasetPath, basePath):
     resultsPath=fullfile(basePath,"results",timestamp+"_"+networkModelName)
     makedirs(resultsPath,exist_ok=True)
     print('Saving confusion matrix and report...')
-    cm_df = pd.DataFrame(cm, index = test_generator.class_indices.keys(), columns = test_generator.class_indices.keys())
+    cm_df = pd.DataFrame(cm, index = classNames, columns = classNames)
     cm_df.to_csv(fullfile(resultsPath,'confusion_matrix.csv'))
-    report = classification_report(y_true, y_pred, target_names=test_generator.class_indices.keys(), output_dict=True)
+    report = classification_report(y_true, y_pred, labels=range(len(classNames)), target_names=classNames, output_dict=True)
     report_df = pd.DataFrame(report).transpose()
     report_df.to_csv(fullfile(resultsPath,'classification_report.csv'))
 

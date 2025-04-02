@@ -108,7 +108,7 @@ def createDataFrameToPlot(freq_orig, freq_nat, freq_art, std_orig, std_nat, std_
         #plt.ylim(0, 20000)
         plt.xticks([])
         plt.subplots_adjust(bottom=0.1, right=0.97)
-        plt.savefig("results\\graficas\\%s/comparacionFreqHistograma" % (DATA_ID))
+        plt.savefig("results/graficas/%s/comparacionFreqHistograma" % (DATA_ID))
         plt.clf()
     if violin:#este es el feo
         fig = go.Figure(go.Violin(y=df, box_visible=True, line_color="#ACCBF3", meanline_visible=True,
@@ -214,7 +214,7 @@ def writeCentroidsInCSV(data, gray_heatmap, threshold, gray_heatmap_orig):
 def saveHistogram(metrics_data, DATA_ID, save=True):
     try :
         # Makedir and existing parent directories as needed
-        os.makedirs("results\\graficas\\%s" % (DATA_ID))
+        os.makedirs("results/graficas/%s" % (DATA_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
@@ -227,7 +227,7 @@ def saveHistogram(metrics_data, DATA_ID, save=True):
     plt.subplots_adjust(bottom=0.14, right=0.97)
 
     if save:
-        plt.savefig("results\\graficas\\%s/histogram_" % (DATA_ID))
+        plt.savefig("results/graficas/%s/histogram_" % (DATA_ID))
     else:
         plt.imshow()
     plt.clf()

@@ -605,7 +605,7 @@ def addRowToCsvFile(filename, fieldnames, data):
 def saveBoxPlot(heatmap_array, img_data, DATA_ID, violin=False, atck='Adv. Artificiales'):
     #https://python-charts.com/es/distribucion/box-plot-matplotlib/#:~:text=Eliminar%20outliers,el%20argumento%20showfliers%20como%20False%20.
     try :
-        os.mkdir('results\\graficas\\%s' % (DATA_ID))
+        os.mkdir('results/graficas/%s' % (DATA_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
@@ -636,12 +636,12 @@ def saveBoxPlot(heatmap_array, img_data, DATA_ID, violin=False, atck='Adv. Artif
     plt.title(title)
     plt.subplots_adjust(bottom=0.1, right=0.97)
 
-    plt.savefig("results\\graficas\\%s/BoxPlot_" % (DATA_ID) + type + id)
+    plt.savefig("results/graficas/%s/BoxPlot_" % (DATA_ID) + type + id)
     plt.clf()
 
 def saveHistogram(heatmap_array, img_data, DATA_ID, atck=''):
     try :
-        os.mkdir('results\\graficas\\%s' % (DATA_ID))
+        os.mkdir('results/graficas/%s' % (DATA_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
@@ -663,13 +663,13 @@ def saveHistogram(heatmap_array, img_data, DATA_ID, atck=''):
     plt.xticks(rotation=45)
     plt.subplots_adjust(bottom=0.14, right=0.97)
 
-    plt.savefig("results\\graficas\\%s/histogram_" % (DATA_ID) + type + id)
+    plt.savefig("results/graficas/%s/histogram_" % (DATA_ID) + type + id)
     plt.clf()
     #fig = sm.qqplot(heatmap_array, line='45')
 
 def saveBarWithError(mean_data, freq_data, std_data, img_data, DATA_ID, atck=''):
     try :
-        os.mkdir('results\\graficas\\%s' % (DATA_ID))
+        os.mkdir('results/graficas/%s' % (DATA_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
@@ -692,12 +692,12 @@ def saveBarWithError(mean_data, freq_data, std_data, img_data, DATA_ID, atck='')
     elif type == "adv. artificiales,":
         type = "AdvArtificiales"
 
-    plt.savefig("results\\graficas\\%s/histogram_500img_" % (DATA_ID) + type + atck)
+    plt.savefig("results/graficas/%s/histogram_500img_" % (DATA_ID) + type + atck)
     plt.clf()
 
 def saveMeanLineWithError(mean500_Orig, mean500_AdvNat, mean500_AdvArt, freq_orig, freq_nat, freq_art, std_orig, std_nat, std_art, DATA_ID, atck=''):
     try :
-        os.mkdir('results\\graficas\\%s' % (DATA_ID))
+        os.mkdir('results/graficas/%s' % (DATA_ID))
     except OSError as e :
         if e.errno != errno.EEXIST :
             raise
@@ -714,7 +714,7 @@ def saveMeanLineWithError(mean500_Orig, mean500_AdvNat, mean500_AdvArt, freq_ori
     plt.legend(["Original", "Adv. Natural", "Adv. Artificial: %s" % (atck)] )
     plt.subplots_adjust(bottom=0.1, right=0.97)
 
-    plt.savefig("results\\graficas\\%s/summary_MeanLine_Freq_Error" % (DATA_ID))
+    plt.savefig("results/graficas/%s/summary_MeanLine_Freq_Error" % (DATA_ID))
     plt.clf()
 def defineTypeOfAdversarial(img):
     if img.attackName == "":
@@ -754,17 +754,17 @@ def createDirs(exec_ID, type='', onebyone=False):
             raise
     if onebyone:
         try :
-            os.makedirs('results\\variablesIndividuales_%s' % (exec_ID))
+            os.makedirs('results/variablesIndividuales_%s' % (exec_ID))
         except OSError as e :
             if e.errno != errno.EEXIST :
                 raise
         try :
-            os.mkdir('results\\variablesIndividuales_%s/NaturalAdversarial' % (exec_ID) )
+            os.mkdir('results/variablesIndividuales_%s/NaturalAdversarial' % (exec_ID) )
         except OSError as e :
             if e.errno != errno.EEXIST :
                 raise
         try :
-            os.mkdir('results\\variablesIndividuales_%s/ArtificialAdversarial' % (exec_ID) )
+            os.mkdir('results/variablesIndividuales_%s/ArtificialAdversarial' % (exec_ID) )
         except OSError as e :
             if e.errno != errno.EEXIST :
                 raise
