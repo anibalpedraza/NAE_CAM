@@ -1,8 +1,13 @@
-from keras.applications.xception import Xception, preprocess_input as preprocess_xception
-from keras.applications.efficientnet import EfficientNetB0, preprocess_input as preprocess_efficientnet
-from keras.applications.inception_v3 import InceptionV3, preprocess_input as preprocess_inceptionv3
-from keras.preprocessing.image import ImageDataGenerator
+from keras.api.applications.xception import Xception, preprocess_input as preprocess_xception
+from keras.api.applications.efficientnet import EfficientNetB0, preprocess_input as preprocess_efficientnet
+from keras.api.applications.inception_v3 import InceptionV3, preprocess_input as preprocess_inceptionv3
+from keras.api.applications.convnext import ConvNeXtTiny, preprocess_input as preprocess_convnext
+#from keras.api.preprocessing.image import ImageDataGenerator
+from keras.api.utils import image_dataset_from_directory
+from keras.api.saving import load_model
+
 import tensorflow as tf
+
 from time import strftime
 from os.path import join as fullfile
 from os import makedirs
@@ -31,37 +36,48 @@ def main(timestamp, networkModelName, datasetPath, basePath):
         base_model = InceptionV3(include_top=False, weights="imagenet")
         preprocess_function = preprocess_inceptionv3
         imageSize=(299, 299)
+    elif networkModelName == 'ConvNeXtTiny':
+        base_model = ConvNeXtTiny(weights='imagenet', include_top=False)
+        preprocess_function = preprocess_convnext
+        imageSize=(224, 224)
     else:
         print('Model not supported')
         exit()
 
     # Build the dataset
-    testDatagen = ImageDataGenerator(preprocessing_function=preprocess_function)
-    test_generator = testDatagen.flow_from_directory(datasetPath,
-                                                            target_size=imageSize,
+    _,test_generator = image_dataset_from_directory(datasetPath,
+                                                            image_size=imageSize,
                                                             batch_size=batchSize,
+                                                            validation_split=0.2,
                                                             seed=13,
-                                                            class_mode='categorical',
-                                                            shuffle=False)
+                                                            label_mode='categorical',
+                                                            subset='both',
+                                                            shuffle=True)
+    classNames=test_generator.class_names
+    # Apply the same preprocessing as the training dataset using map and autotune
+    test_generator = test_generator.map(lambda x, y: (preprocess_function(x), y),)
+    AUTOTUNE = tf.data.AUTOTUNE
+    test_generator = test_generator.prefetch(buffer_size=AUTOTUNE)
 
-    classNames=test_generator.class_indices.keys()
     # Load the model
     print('Loading model...')
     logdir = fullfile(basePath,"logs", timestamp+"_"+networkModelName)
     outputModelPath=fullfile(basePath,"checkpoints")
-    outputModelName=fullfile(outputModelPath,timestamp+"_"+networkModelName+"_model_base.h5")
+    outputModelName=fullfile(outputModelPath,timestamp+"_"+networkModelName+"_model_base.keras")
 
     # Load the model and testing
     print('Testing model...')
-    model = tf.keras.models.load_model(outputModelName)
+    model = load_model(outputModelName)
     #model.summary()
-    model.evaluate(test_generator)
+    #model.evaluate(test_generator)
 
     # Get confusion matrix
     print('Getting confusion matrix...')
 
     # Get the true classes
-    y_true = test_generator.classes
+    #y_true = test_generator.classes
+    y_true = np.concatenate([y for x, y in test_generator], axis=0)
+    y_true = np.argmax(y_true, axis=1)
     # Get the predicted classes
     y_pred = model.predict(test_generator)
     y_pred = np.argmax(y_pred, axis=1)
@@ -102,18 +118,25 @@ if __name__ == "__main__":
     datasetPath=fullfile(basePath,'dataset_processed')
     nClasses=10
     '''
-    '''
-    basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+    
+    envPath='/datasets/' # Docker
+    #envPath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB' # Alienware
+    #envPath='D:\\VISILAB\\NAE_CAM' # Kratos
+    #envPath='D:\\NAE_CAM' # PC
+
+    basePath=fullfile(envPath,'Dataset_NAE_CAM_Cyano')
     datasetPath=fullfile(basePath,'dataset_cyano_processed')
     nClasses=5
+    
     '''
-    nClasses=2
+    nClasses=4
     fold='test' #'train'
     basePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Biopsy\\Biopsy_'+str(nClasses)+'classes'
     datasetPath=fullfile(basePath,'dataset_biopsy_'+str(nClasses)+'classes_'+fold+'_processed')
+    timestamp=strftime("20250311_125705") # 4 classes: "20250311_125705" # 2 classes: "20250311_124455"
+    '''
+    networkModelName = 'ConvNeXtTiny' #'InceptionV3' 'EfficientNetB0' #'Xception'
+    timestamp='20250326_165847'
     
-
-    networkModelName = 'EfficientNetB0' # 'InceptionV3' 'EfficientNetB0' #'Xception'
-    timestamp=strftime("20250311_124455") # 4 classes: "20250311_125705"
-
-    main(timestamp, networkModelName, datasetPath, basePath, nClasses)
+    
+    main(timestamp, networkModelName, datasetPath, basePath)

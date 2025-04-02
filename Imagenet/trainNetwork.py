@@ -1,16 +1,20 @@
-from keras.applications.xception import Xception, preprocess_input as preprocess_xception
-from keras.applications.efficientnet import EfficientNetB0, preprocess_input as preprocess_efficientnet
-from keras.applications.inception_v3 import InceptionV3, preprocess_input as preprocess_inceptionv3
-from keras.models import Model
-from keras.layers import Dense, GlobalAveragePooling2D
-from keras.preprocessing.image import ImageDataGenerator
+from keras.api.applications.xception import Xception, preprocess_input as preprocess_xception
+from keras.api.applications.efficientnet import EfficientNetB0, preprocess_input as preprocess_efficientnet
+from keras.api.applications.inception_v3 import InceptionV3, preprocess_input as preprocess_inceptionv3
+from keras.api.applications.convnext import ConvNeXtTiny, preprocess_input as preprocess_convnext
+from keras.api.models import Model
+from keras.api.layers import Dense, GlobalAveragePooling2D
+#from keras.api.preprocessing.image import ImageDataGenerator
+from keras.api.utils import image_dataset_from_directory
+from keras.api.saving import load_model
+
 import pathlib
 import tensorflow as tf
 from time import strftime
 from os.path import join as fullfile
 from os import makedirs
 
-from testNetwork import main as testNetwork
+from Imagenet.testNetwork import main as testNetwork
 
 def main(networkModelName, datasetPath, basePath, nClasses):
    # Show the experiment information in a single message
@@ -38,29 +42,32 @@ def main(networkModelName, datasetPath, basePath, nClasses):
       base_model = InceptionV3(include_top=False, weights="imagenet")
       preprocess_function = preprocess_inceptionv3
       imageSize=(299, 299)
+   elif networkModelName == 'ConvNeXtTiny':
+      base_model = ConvNeXtTiny(weights='imagenet', include_top=False)
+      preprocess_function = preprocess_convnext
+      imageSize=(224, 224)
    else:
       print('Model not supported')
       exit()
 
 
    # Build the dataset
-   trainDatagen = ImageDataGenerator(preprocessing_function=preprocess_function,
-                                    validation_split=validationSplit)
-   train_generator = trainDatagen.flow_from_directory(datasetPath,
-                                                      target_size=imageSize,
+   train_generator,validation_generator = image_dataset_from_directory(datasetPath,
+                                                      image_size=imageSize,
                                                       batch_size=batchSize,
+                                                      validation_split=validationSplit,
                                                       seed=13,
-                                                      class_mode='categorical',
-                                                      subset='training',
+                                                      label_mode='categorical',
+                                                      subset='both',
                                                       shuffle=True)
-   validation_generator = trainDatagen.flow_from_directory(datasetPath,
-                                                         target_size=imageSize,
-                                                         batch_size=batchSize,
-                                                         seed=13,
-                                                         class_mode='categorical',
-                                                         subset='validation',
-                                                         shuffle=False)
-
+                                         
+   # Apply the same preprocessing as the training dataset using map and autotune
+   train_generator = train_generator.map(lambda x, y: (preprocess_function(x), y))
+   validation_generator = validation_generator.map(lambda x, y: (preprocess_function(x), y))
+   # Optimize performance
+   AUTOTUNE = tf.data.AUTOTUNE
+   train_generator = train_generator.prefetch(buffer_size=AUTOTUNE)
+   validation_generator = validation_generator.prefetch(buffer_size=AUTOTUNE)
 
    # add a global spatial average pooling layer
    x = base_model.output
@@ -87,7 +94,7 @@ def main(networkModelName, datasetPath, basePath, nClasses):
    logdir = fullfile(basePath,"logs", timestamp+"_"+networkModelName)
    makedirs(logdir,exist_ok=True)
 
-   checkpoint_path = fullfile(basePath,"checkpoints", timestamp+"_"+networkModelName, "cp-{epoch:04d}.ckpt")
+   checkpoint_path = fullfile(basePath,"checkpoints", timestamp+"_"+networkModelName, "cp-{epoch:04d}.keras")
    makedirs(fullfile(basePath,"checkpoints", timestamp+"_"+networkModelName),exist_ok=True)
    checkpoint_callback=tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=False, save_best_only=False, monitor='val_loss', mode='min')
 
@@ -103,7 +110,7 @@ def main(networkModelName, datasetPath, basePath, nClasses):
    # Save the model
    outputModelPath=fullfile(basePath,"checkpoints")
    print('Saving the model after training')
-   outputModelName=fullfile(outputModelPath,timestamp+"_"+networkModelName+"_model_base.h5")
+   outputModelName=fullfile(outputModelPath,timestamp+"_"+networkModelName+"_model_base.keras")
    model.save(outputModelName)
 
    # at this point, the top layers are well trained and we can start fine-tuning
@@ -119,7 +126,8 @@ def main(networkModelName, datasetPath, basePath, nClasses):
    # the first 249 layers and unfreeze the rest:ç
 
    # Load the model and testing
-   model = tf.keras.models.load_model(outputModelName)
+   #model = tf.keras.models.load_model(outputModelName)
+   model = load_model(outputModelName)
    #model.summary()
    model.evaluate(validation_generator)
 
@@ -159,7 +167,7 @@ def main(networkModelName, datasetPath, basePath, nClasses):
    return timestamp
 
 if __name__ == '__main__':
-   networkModelName = ['EfficientNetB0']#['InceptionV3','Xception'] #'EfficientNetB0' # 'InceptionV3' 'EfficientNetB0' #'Xception'
+   networkModelName = ['ConvNeXtTiny','EfficientNetB0','InceptionV3','Xception'] #'EfficientNetB0' # 'InceptionV3' 'EfficientNetB0' #'Xception'
 
    # Load the dataset from custom directory and classes
    #basePath='D:\\Dataset_NAE_CAM'
@@ -178,11 +186,16 @@ if __name__ == '__main__':
    nClasses=4'
    '''
 
-   cyanoDatasetBasePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Cyano'
+   envPath='/datasets/' # Docker
+   #envPath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB' # Alienware
+   #envPath='D:\\VISILAB\\NAE_CAM' # Kratos
+   #envPath='D:\\NAE_CAM' # PC
+
+   cyanoDatasetBasePath=fullfile(envPath,'Dataset_NAE_CAM_Cyano')
    cyanoDatasetPath=fullfile(cyanoDatasetBasePath,'dataset_cyano_processed')
    cyanoNClasses=5
 
-   biopsyDatasetBasePath='C:\\Users\\Aniba\\Documents\\Code\\VISILAB\\Dataset_NAE_CAM_Biopsy\\Biopsy_4classes'
+   biopsyDatasetBasePath=fullfile(envPath,'Dataset_NAE_CAM_Biopsy','Biopsy_4classes')
    biopsyDatasetPath=fullfile(biopsyDatasetBasePath,'dataset_biopsy_4classes_train_processed')
    biopsyNClasses=4
 
