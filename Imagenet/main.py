@@ -55,7 +55,8 @@ def executeGradCam(model, orig, adv) :
 
 
 # ------------------------ Código principal ---------------------------------
-def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, NetworkModelName, timestamp):
+def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, NetworkModelName, timestamp,
+         nImages=None):
     # Initial variables
 
     if NetworkModelName == 'EfficientNetB0':
@@ -82,7 +83,12 @@ def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, Networ
     EXECUTION_ID = timestamp+"_OpenFlexure_"+NetworkModelName+"_"+fovName#"_01"
 
     # Get number of images in IMG_PATH
-    nImages = len([name for name in os.listdir(IMG_PATH) if os.path.isfile(os.path.join(IMG_PATH, name))])
+    totalNimages=len([name for name in os.listdir(IMG_PATH) if os.path.isfile(os.path.join(IMG_PATH, name))])
+    if nImages is None:
+        nImages = totalNimages
+    else:
+        nImages = min(nImages, totalNimages)
+        
     NUM_IMG = nImages #90 #Cantidad de imagenes de test
     TOTAL_IMG = nImages #90 #Cantidad de imagenes de las que se disponen, imagenet=50000
 
@@ -102,6 +108,8 @@ def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, Networ
     #Si unclassified_images = True: cargará las imagenes que no son de imagenet y por tanto no estan dentro de una carpeta con el valor de su ID
 
     #Generate Adversarials
+    advsPath=fullfile('results','advs',EXECUTION_ID)
+    os.makedirs(advsPath,exist_ok=True)
     img_adv=[]
     for atck in range(0, len(ATTACK_NAME)) :
         individual_atck = []
@@ -109,7 +117,8 @@ def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, Networ
             img_adv.append(aux.generateAnAdversarialImage(img_test[num], x_test[num], ATTACK_NAME[atck], classifier, isImagenet=False))
 
         individual_atck = img_adv[atck:atck+len(img_test)]
-        filename = "Adv_Images_AttackMethod_" + ATTACK_NAME[atck] + ".pkl"
+        
+        filename = fullfile(advsPath,"Adv_Images_AttackMethod_" + ATTACK_NAME[atck] + ".pkl")
         aux.saveVariable(individual_atck, filename)
     #Hasta aqui tenemos una lista de objetos imagenes para originales y adversarias, en ambas se ha predicho ya la clase
 
@@ -163,16 +172,16 @@ if __name__ == '__main__':
     #timestampList=['20250325_140731','20250325_141747','20250325_143051']
     #NetworkModelNameList = ['InceptionV3','Xception','EfficientNetB0']
 
-    timestampList=['20250402_131439']#'20250402_131826','20250402_132035','20250402_131636']
-    NetworkModelNameList = ['ConvNeXtTiny']#'InceptionV3','Xception','EfficientNetB0']
+    timestampList=['20250402_131439','20250402_131826','20250402_132035','20250402_131636']
+    NetworkModelNameList = ['ConvNeXtTiny','InceptionV3','Xception','EfficientNetB0']
 
     #ATTACK_NAME = ['Wasserstein','ZooAttack']#'CarliniLInfMethod',','BasicIterativeMethod',['FastGradientMethod','ProjectedGradientDescent','BoundaryAttack']
-    ATTACK_NAME = ['FastGradientMethod']#,'ProjectedGradientDescent','BoundaryAttack']
+    ATTACK_NAME = ['FastGradientMethod','ProjectedGradientDescent','BoundaryAttack']
 
     for timestamp, NetworkModelName in zip(timestampList, NetworkModelNameList):
         for indexExp in range(0, len(fovName)):
             main(BASE_PATH, fovFolder, fovName[indexExp], 5, realID[indexExp], 
-                 ATTACK_NAME, NetworkModelName, timestamp)
+                 ATTACK_NAME, NetworkModelName, timestamp, nImages=150)
     
     # Biopsy V1
     '''
