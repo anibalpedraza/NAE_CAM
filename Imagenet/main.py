@@ -56,7 +56,17 @@ def executeGradCam(model, orig, adv) :
 
 # ------------------------ Código principal ---------------------------------
 def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, NetworkModelName, timestamp,
-         nImages=None):
+         nImages=None,epsilon=25000):
+    
+    # Summary of experiment
+    print("Execution ID: ", timestamp)
+    print("Network Model Name: ", NetworkModelName)
+    print("Number of classes: ", NUM_CLASSES)
+    print("Number of images: ", nImages)
+    print("Attack name: ", ATTACK_NAME)
+    print("FOV name: ", fovName)
+
+    
     # Initial variables
 
     if NetworkModelName == 'EfficientNetB0':
@@ -110,41 +120,44 @@ def main(BASE_PATH, fovFolder, fovName, NUM_CLASSES, realID, ATTACK_NAME, Networ
     #Generate Adversarials
     advsPath=fullfile('results','advs',EXECUTION_ID)
     os.makedirs(advsPath,exist_ok=True)
-    img_adv=[]
+    #img_adv=[]
     for atck in range(0, len(ATTACK_NAME)) :
-        individual_atck = []
-        for num in range(0, len(img_test)):
-            img_adv.append(aux.generateAnAdversarialImage(img_test[num], x_test[num], ATTACK_NAME[atck], classifier, isImagenet=False))
-
-        individual_atck = img_adv[atck:atck+len(img_test)]
-        
         filename = fullfile(advsPath,"Adv_Images_AttackMethod_" + ATTACK_NAME[atck] + ".pkl")
-        aux.saveVariable(individual_atck, filename)
-    #Hasta aqui tenemos una lista de objetos imagenes para originales y adversarias, en ambas se ha predicho ya la clase
+        if os.path.exists(filename):
+            print("Adv already exists, loading them", filename)
+            img_adv = aux.loadVariable(filename)
 
-    #GRAD CAM
-    # Remove last layer's softmax
-    model.layers[-1].activation = None #efficientnetb0
-    #print(model.summary())
+        else:
+            print("Adv not found, generating them", filename)
+            img_adv = []
+            for num in range(0, len(img_test)):
+                img_adv.append(aux.generateAnAdversarialImage(img_test[num], x_test[num], ATTACK_NAME[atck], classifier, isImagenet=False,
+                                                              epsilon=epsilon))
 
-    for atck in range(0, len(ATTACK_NAME)):
+            aux.saveVariable(img_adv, filename)
+        #Hasta aqui tenemos una lista de objetos imagenes para originales y adversarias, en ambas se ha predicho ya la clase
+
+        #GRAD CAM
+        # Remove last layer's softmax
+        model.layers[-1].activation = None #efficientnetb0
+        #print(model.summary())
         for num in range(0, NUM_IMG):
             img_figure, list_img_data = executeGradCam(model,img_test[num], img_adv[num])
             aux.saveResults(img_figure, list_img_data, EXECUTION_ID)
             aux.plotDifferenceBetweenImages(img_test[num], img_adv[num], EXECUTION_ID)
-    aux.calculatePercentageNaturalAdversarial(img_test)
+        aux.calculatePercentageNaturalAdversarial(img_test)
 
-    # Save variables
-    try :
-        os.mkdir(fullfile('results','variables'))
-    except OSError as e :
-        if e.errno != errno.EEXIST :
-            raise
-    aux.saveVariable(img_test, fullfile('results','variables',"%s_testImages_%s_random%simages.pkl" % 
-                                        (EXECUTION_ID, NetworkModelName, NUM_IMG)))
-    aux.saveVariable(img_adv, fullfile('results','variables',"%s_adversarials_images_atcks_%s" % 
-                                    (EXECUTION_ID, ATTACK_NAME) + ".pkl"))
-    #https://stackoverflow.com/questions/66182884/how-to-implement-grad-cam-on-a-trained-network
+        # Save variables
+        try :
+            os.mkdir(fullfile('results','variables'))
+        except OSError as e :
+            if e.errno != errno.EEXIST :
+                raise
+        aux.saveVariable(img_test, fullfile('results','variables',"%s_testImages_%s_random%simages.pkl" % 
+                                            (EXECUTION_ID, NetworkModelName, NUM_IMG)))
+        aux.saveVariable(img_adv, fullfile('results','variables',"%s_adversarials_images_atcks_%s" % 
+                                        (EXECUTION_ID, ATTACK_NAME) + ".pkl"))
+        #https://stackoverflow.com/questions/66182884/how-to-implement-grad-cam-on-a-trained-network
 
 if __name__ == '__main__':
     # ------------------------ Constantes ---------------------------------------
@@ -157,32 +170,44 @@ if __name__ == '__main__':
     #envPath='D:\\NAE_CAM' # PC
 
     # Cyano
-    
+    '''
     #BASE_PATH='D:\\Dataset_NAE_CAM_Cyano'
     BASE_PATH=fullfile(envPath,'Dataset_NAE_CAM_Cyano')
     #timestamp = '20250225_171006' #'20240730_122157' #'20240730_130240' #'20240730_122157' #'20240729_134137'
     fovFolder='FOVs_Alberto_v3'
-    fovName=['FOV_Dolichospermum1','FOV_Phormidium1','FOV_Phormidium2',
-             'FOV_Phormidium3','FOV_Phormidium4','FOV_Phormidium5',
-             'FOV_Raphidiopsis1','FOV_Tolypothrix1','FOV_Tolypothrix2'] #'FOV_Raphidiopsis1'
-    realID=[0,2,2,
-            2,2,2,
-            3,4,4]
+    fovName=[#'FOV_Dolichospermum1',
+             #'FOV_Phormidium1','FOV_Phormidium2',
+             #'FOV_Phormidium3','FOV_Phormidium4',
+             #'FOV_Phormidium5',
+             'FOV_Raphidiopsis1'#,'FOV_Tolypothrix1','FOV_Tolypothrix2'
+             ] #'FOV_Raphidiopsis1'
+    realID=[#0,
+            #2,2,
+            #2,2,
+            #2,
+            3#,4,4
+            ]
     
     #timestampList=['20250325_140731','20250325_141747','20250325_143051']
     #NetworkModelNameList = ['InceptionV3','Xception','EfficientNetB0']
 
-    timestampList=['20250402_131439','20250402_131826','20250402_132035','20250402_131636']
-    NetworkModelNameList = ['ConvNeXtTiny','InceptionV3','Xception','EfficientNetB0']
+    timestampList=['20250402_132035','20250402_131636','20250402_131439']#'20250402_131826'
+    
+    NetworkModelNameList = ['Xception','EfficientNetB0','ConvNeXtTiny']#'InceptionV3',
 
-    #ATTACK_NAME = ['Wasserstein','ZooAttack']#'CarliniLInfMethod',','BasicIterativeMethod',['FastGradientMethod','ProjectedGradientDescent','BoundaryAttack']
-    ATTACK_NAME = ['FastGradientMethod','ProjectedGradientDescent','BoundaryAttack']
+    #ATTACK_NAME = ['Wasserstein','ZooAttack']#'CarliniLInfMethod',','BasicIterativeMethod']
+    #ATTACK_NAME = ['FastGradientMethod']#,'ProjectedGradientDescent','BoundaryAttack']
+    ATTACK_NAME = ['CarliniL2Method',
+                'HopSkipJump','FastGradientMethod','ProjectedGradientDescent','BoundaryAttack',
+                ] #'Wasserstein','ZooAttack','BasicIterativeMethod','CarliniLInfMethod'
+
 
     for timestamp, NetworkModelName in zip(timestampList, NetworkModelNameList):
         for indexExp in range(0, len(fovName)):
             main(BASE_PATH, fovFolder, fovName[indexExp], 5, realID[indexExp], 
-                 ATTACK_NAME, NetworkModelName, timestamp, nImages=150)
-    
+                 ATTACK_NAME, NetworkModelName, timestamp, nImages=150,
+                 epsilon=100000)
+    '''
     # Biopsy V1
     '''
     NUM_CLASSES_LIST = [2,4] #(Cyano) # Diatoms: 46 #imagenet=1000
@@ -207,4 +232,55 @@ if __name__ == '__main__':
             main(BASE_PATH, fovFolder, fovName[indexExp], NUM_CLASSES, realID[indexExp],
                 ATTACK_NAME, NetworkModelName, timestamp)'
     '''
-    # V3
+    # Biopsy V2
+    '''
+    NUM_CLASSES_LIST = [4]
+    timestamp_list = ['20250311_124455','20250311_125705'] #'20240730_122157' #'20240730_130240' #'20240730_122157' #'20240729_134137'
+    
+    for NUM_CLASSES,timestamp in zip(NUM_CLASSES_LIST,timestamp_list):
+        BASE_PATH=fullfile(envPath,'Dataset_NAE_CAM_Biopsy','Biopsy_'+str(NUM_CLASSES)+'classes')
+        
+        fovFolder='FOVs_Lucia_v2'
+        fovName=['FOV_A-1-02_'+str(NUM_CLASSES)+'-classes','FOV_B-15-3419_'+str(NUM_CLASSES)+'-classes','FOV_B-15-4170_'+str(NUM_CLASSES)+'-classes',
+                'FOV_SESCAM-13-HE_'+str(NUM_CLASSES)+'-classes','FOV_SESCAM-14-HE_'+str(NUM_CLASSES)+'-classes','FOV_SESCAM-15-HE_'+str(NUM_CLASSES)+'-classes']
+
+        realID=[3,1,1,
+                3,2,3]
+
+        #EPSILON = [20000, 30000]
+        ATTACK_NAME = ['FastGradientMethod']#,'ProjectedGradientDescent','BoundaryAttack']
+
+        timestampList=['20250402_233857','20250402_234313','20250402_233523','20250402_233154']
+        NetworkModelNameList=['InceptionV3','Xception','EfficientNetB0','ConvNeXtTiny']
+        
+        # Execute main function
+        for timestamp, NetworkModelName in zip(timestampList, NetworkModelNameList):
+            for indexExp in range(0, len(fovName)):
+                main(BASE_PATH, fovFolder, fovName[indexExp], NUM_CLASSES, realID[indexExp],
+                    ATTACK_NAME, NetworkModelName, timestamp, nImages=150)
+    '''
+    # Biopsy V3
+    
+    BASE_PATH=fullfile(envPath,'Dataset_NAE_CAM_Biopsy','Biopsy_4classes')
+    
+    fovFolder='FOVs_Lucia_v2'
+    fovName=['FOV_SESCAM-15-HE_4-classes']#'FOV_A-1-02_4-classes'
+
+    realID=[3]#3
+
+    #EPSILON = [20000, 30000]
+    #ATTACK_NAME = ['FastGradientMethod']#,'ProjectedGradientDescent','BoundaryAttack']
+    ATTACK_NAME = ['CarliniL2Method',
+                'HopSkipJump','FastGradientMethod','ProjectedGradientDescent','BoundaryAttack',
+                ] #'Wasserstein','ZooAttack','BasicIterativeMethod','CarliniLInfMethod'
+
+    timestampList=['20250402_233857','20250402_234313','20250402_233523','20250402_233154']
+    NetworkModelNameList=['InceptionV3','Xception','EfficientNetB0','ConvNeXtTiny']
+    
+    # Execute main function
+    for timestamp, NetworkModelName in zip(timestampList, NetworkModelNameList):
+        for indexExp in range(0, len(fovName)):
+            main(BASE_PATH, fovFolder, fovName[indexExp], 4, realID[indexExp],
+                ATTACK_NAME, NetworkModelName, timestamp, nImages=150,
+                epsilon=100000)
+    
