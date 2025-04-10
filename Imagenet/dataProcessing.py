@@ -12,6 +12,9 @@ import xlwt #Para escribir en excel
 import gradCamInterface
 import auxiliarFunctions as aux
 import os
+
+from os.path import join as fullfile
+
 def writeDataImageInCSV(data, img):
     data.append(img.name)
     if img.attackName == "":
@@ -41,7 +44,8 @@ def sortListOfImages(areMultipleAttacks, num):
 
 # ------------------------ Constantes ---------------------------------------
 #DATA_PATH = "C:/Users/User/TFG-repository/Imagenet/variablesIndividuales_WebcamData_luzTest_InceptionResNetV2/"
-DATA_PATH='D:\\OneDrive\\OneDrive - Universidad de Castilla-La Mancha\\Visilab 5.0\\Proyectos\\2_AdvsHarbinder\\Repos\\NAE_CAM\\results\\variables'
+#DATA_PATH='D:\\OneDrive\\OneDrive - Universidad de Castilla-La Mancha\\Visilab 5.0\\Proyectos\\2_AdvsHarbinder\\Repos\\NAE_CAM\\results\\variables'
+DATA_PATH=fullfile('results','variables')
 DATA_ID = ""
 NUM_ATCKS = 1 #Numero de ataques distintos que se usaron cuando se guardaron las imagenes
 NUM_EPS = 1  #Numero de epsilon distintos que se usaron cuando se guardaron las imagenes
@@ -61,7 +65,8 @@ execute_Histogram=False #tarda mucho
 
 if calculate_metrics == True:
     metricsName = ["Nombre Imagen", "Ataque", "Epsilon", "Media", "Media normalizada", "Varianza", "Desviación Típica", "Norma Mascara", "Norma Imagen", "MSE", "PSNR", "SSIM"]
-    aux.createCsvFile(DATA_ID+"_metrics.csv", metricsName)
+    csvPath=fullfile('results','csv', DATA_ID+"_metrics_resume.csv")
+    aux.createCsvFile(csvPath, metricsName)
 
 if oneByOne:
     sorted_list = img_orig+img_adv
@@ -108,7 +113,7 @@ for num in range(0, NUM_IMG):
                 metricsValue.append("-")
                 metricsValue.append("-")
 
-            aux.addRowToCsvFile(DATA_ID+"_metrics.csv", metricsName, metricsValue)
+            aux.addRowToCsvFile(csvPath, metricsName, metricsValue)
 
     if execute_Histogram == True:
         #aux.saveHistogram(sorted_list, DATA_ID)

@@ -19,7 +19,7 @@ import plotly.graph_objects as go
 
 from keras.api.layers import Input
 #Mas ataques: https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/evasion.html#fast-gradient-method-fgm
-from art.attacks.evasion import FastGradientMethod, BasicIterativeMethod, ProjectedGradientDescent, CarliniLInfMethod, HopSkipJump, Wasserstein, ZooAttack, BoundaryAttack
+from art.attacks.evasion import FastGradientMethod, BasicIterativeMethod,ProjectedGradientDescent, CarliniLInfMethod, HopSkipJump, Wasserstein, ZooAttack, BoundaryAttack,CarliniL2Method
 from keras.api.applications.efficientnet import EfficientNetB0, decode_predictions as decode_efficientnet0
 from keras.api.applications.xception import Xception, preprocess_input as preprocess_xception, decode_predictions as decode_xception
 from keras.api.applications.inception_v3 import InceptionV3, preprocess_input as preprocess_inceptionv3, decode_predictions as decode_inceptionv3
@@ -254,13 +254,13 @@ def deprecated_generateAdversarialImages(originalImages, x_test, attackName, eps
                 img_adv.append(loadVariable(filename))
     return img_adv
 
-def generateAnAdversarialImage(originalImage, x_test, attackName, classifier, isImagenet=True):
+def generateAnAdversarialImage(originalImage, x_test, attackName, classifier, isImagenet=True,
+                               epsilon = 20):
     # Para distintos valores de epsilon
     arrayShape = (1, originalImage.size[0], originalImage.size[1], 3)
     img_array_test = np.ndarray(shape=arrayShape, dtype='float32')
     aux = [30,15,5] #[0.1,0.025,0.05]
     initial = 20
-    epsilon = 20 #fastG: epsilon = 2500 botellas: epsilon=25 boli: eps=5
     singleExecution = True
     # Si es un adversario natural o no acierta la imagen original de imagenet no hace falta que genere imagenes con ataques
     if isValidToCreateAdversarialExample(originalImage, classifier, isImagenet) == False:
@@ -408,21 +408,29 @@ def getLastConvLayerName(NetworkModelName):
 def getAttackMethod(name, classifier, epsilon):
 #attackName = ['FastGradientMethod', 'BasicIterativeMethod', 'ProjectedGradientDescent', 'CarliniLInfMethod', 'HopSkipJump']
     if name == 'FastGradientMethod':
-        return FastGradientMethod(estimator=classifier, eps=epsilon, norm=2, batch_size=4)
+        return FastGradientMethod(estimator=classifier, eps=epsilon, norm=2, batch_size=2)
     elif name == 'BasicIterativeMethod':
-        return BasicIterativeMethod(estimator=classifier, eps=epsilon, max_iter=100, batch_size=4)
+        return BasicIterativeMethod(estimator=classifier, eps=epsilon, max_iter=100, batch_size=2)
     elif name == 'ProjectedGradientDescent':# este
-        return ProjectedGradientDescent(estimator=classifier, eps=epsilon, max_iter=100, batch_size=4)
+        return ProjectedGradientDescent(estimator=classifier, eps=epsilon, max_iter=100, batch_size=2,
+                                        norm=2)
     elif name == 'CarliniLInfMethod': # este
-        return CarliniLInfMethod(classifier=classifier, confidence=epsilon, learning_rate=0.2, max_iter=10, batch_size=4)
+        return CarliniLInfMethod(classifier=classifier, learning_rate=0.2, max_iter=10, batch_size=2) # confidence=epsilon
     elif name == 'HopSkipJump':
-        return HopSkipJump(classifier=classifier, targeted=False, max_iter=epsilon, max_eval=100, batch_size=4)#norm="inf" hay que cambiar max_iter y max_eval
+        return HopSkipJump(classifier=classifier, targeted=False,
+                           max_iter=10,init_eval=10,max_eval=50,
+                           batch_size=2)#norm="inf" hay que cambiar max_iter y max_eval
+                            #max_iter=epsilon
     elif name == 'ZooAttack':
         return ZooAttack(classifier=classifier)
     elif name == 'BoundaryAttack':
-        return BoundaryAttack(estimator=classifier, targeted=False, max_iter=epsilon, batch_size=4)
+        return BoundaryAttack(estimator=classifier, targeted=False,# epsilon=epsilon,
+                              batch_size=2, max_iter=100)
     elif name == 'Wasserstein':
-        return Wasserstein(estimator=classifier, eps=epsilon, max_iter=5, batch_size=4)
+        return Wasserstein(estimator=classifier, eps=epsilon, max_iter=5,
+                           batch_size=2)
+    elif name == 'CarliniL2Method':
+        return CarliniL2Method(classifier=classifier, learning_rate=0.2, max_iter=10, batch_size=2)
 
 def createFigure(list_of_images, imagen_data, resultColumn='GradCam'):
     if imagen_data[0].advNatural:

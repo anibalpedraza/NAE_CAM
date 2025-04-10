@@ -194,7 +194,7 @@ def calculateMinCentroid(gray_heatmap):
 def writeCentroidsInCSV(data, gray_heatmap, threshold, gray_heatmap_orig):
     x2, y2 = calculateMaxCentroid(gray_heatmap, threshold)
     data.append("(%s - %s)" % (x2, y2))
-    if gray_heatmap_orig != []:
+    if len(gray_heatmap_orig) != len([]):
         x1, y1 = calculateMaxCentroid(gray_heatmap_orig, threshold)
         dist_between_max = abs(round(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 2))
         data.append(dist_between_max)
@@ -203,7 +203,7 @@ def writeCentroidsInCSV(data, gray_heatmap, threshold, gray_heatmap_orig):
 
     x2, y2 = calculateMinCentroid(gray_heatmap)
     data.append("(%s - %s)" % (x2, y2))
-    if gray_heatmap_orig != []:
+    if len(gray_heatmap_orig) != len([]):
         x1, y1 = calculateMinCentroid(gray_heatmap_orig)
         dist_between_min = abs(round(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 2))
         data.append(dist_between_min)
