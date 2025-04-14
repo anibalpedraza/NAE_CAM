@@ -3,11 +3,11 @@ function calculateStatistics(dataPath,outputPath)
     % Explore main path and list available networks
     networkList=dir(dataPath);
     networkList=networkList(3:end);
-    metrics={'mediaIntensidadPixeles','varianza'};%'mediaIntensidadPixeles','ssim','varianza'};
-
+    
     % Define some global parameters
-    combinationPairs=[1,2;1,3;2,3];
-    ttestTableFull=table();
+    metrics={'mediaIntensidadPixeles','varianza'};% 'ssim'
+    combinationPairs=[1,2;1,3;1,4;2,3;2,4]; % 1,2;1,3
+    statsTableFull=table();
     
     % Iterate over networks (only directories)
     for i=1:length(networkList)
@@ -31,9 +31,9 @@ function calculateStatistics(dataPath,outputPath)
                     combinationsNames{k}=[datasetNames{combinationPairs(k,1)},'_vs_',datasetNames{combinationPairs(k,2)}];
                 end
                 % Empy table to store ttest results
-                ttestTable=table('Size',[size(combinationPairs,1),5],'VariableTypes',...
-                    {'string','string','string','double','double'},...
-                    'VariableNames',{'network','metric','combination','ttestT','ttestP'});
+                statsTable=table('Size',[size(combinationPairs,1),7],'VariableTypes',...
+                    {'string','string','string','double','double','double','double'},...
+                    'VariableNames',{'network','metric','combination','ttestT','ttestP','utestU','utestP'});
                 % Iterate over combinationPairs
                 for c=1:size(combinationPairs,1)
                     fprintf(['\t','\t','Processing combination: ',combinationsNames{c},'\n']);
@@ -43,27 +43,35 @@ function calculateStatistics(dataPath,outputPath)
                     hold on;
                     scatter(1:nVars,tableData{combinationPairs(c,2),:},'red');
                     legend(datasetNames{combinationPairs(c,1)},datasetNames{combinationPairs(c,2)});
+                    xlabel('Number of samples');
+                    ylabel('Mean intensity value');
                     % Save plot
                     plotPath=fullfile(outputPath,[networkName,'_',metricName,'_',...
                         combinationsNames{c},'.png']);
+                    % Position: left,down,right,up
+                    set(gca,'position',[0.08 0.10 0.89 0.88]);
                     saveas(gcf,plotPath);
-                    % Ttest
-                    [ttestT,ttestP]=ttest2(tableData{combinationPairs(c,1),:},tableData{combinationPairs(c,2),:});
-                    % Store ttest results in the table
-                    ttestTable{c,'network'}=string(networkName);
-                    ttestTable{c,'metric'}=string(metricName);
-                    ttestTable{c,'combination'}=string(combinationsNames{c});
-                    ttestTable{c,'ttestT'}=ttestT;
-                    ttestTable{c,'ttestP'}=round(ttestP,5);
+                    % T-Test
+                    [ttestH,ttestP,ttestCI,ttestStats]=ttest2(tableData{combinationPairs(c,1),:},tableData{combinationPairs(c,2),:});
+                    % U-Test Mann-Whitney - Wilcoxon ranksum
+                    [utestP,utestH,utestStats]=ranksum(tableData{combinationPairs(c,1),:},tableData{combinationPairs(c,2),:});
+                    % Store results in the table
+                    statsTable{c,'network'}=string(networkName);
+                    statsTable{c,'metric'}=string(metricName);
+                    statsTable{c,'combination'}=string(combinationsNames{c});
+                    statsTable{c,'ttestT'}=round(ttestStats.tstat,2); % ttestT
+                    statsTable{c,'ttestP'}=round(ttestP,2);
+                    statsTable{c,'utestU'}=round(utestStats.ranksum,2); % ttestT
+                    statsTable{c,'utestP'}=round(utestP,2);
                 end
-                ttestTableFull=[ttestTableFull;ttestTable];
+                statsTableFull=[statsTableFull;statsTable];
             end
         end
     end
     
     % Write global ttest results to file
-    ttestPathFull=fullfile(outputPath,'ttestResultsFull.csv');
-    writetable(ttestTableFull,ttestPathFull,'Delimiter',',');
+    statsPathFull=fullfile(outputPath,'statsResultsFull.csv');
+    writetable(statsTableFull,statsPathFull,'Delimiter',',');
     
     fprintf('Finished processing all networks and metrics\n');
 
