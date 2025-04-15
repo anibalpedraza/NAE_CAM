@@ -35,7 +35,7 @@ def main(DATA_ID, ATCK_NAME):
     NUM_IMG = len(sorted_data)
 
     # ------------------------ Operaciones --------------------------------------
-    calculate_metrics = True #tarda 'poco'
+    calculate_metrics = False #tarda 'poco'
     execute_Histogram = False #tarda mucho
     execute_BoxPlot = False
 
@@ -167,9 +167,15 @@ if __name__ == "__main__":
     #networkName = "EfficientNetB0" #"Xception" #EfficientNetB0
     #DATA_ID=timestamp+"_OpenFlexure_"+networkName+'_'+fovName"
     # Cyano
+    '''
     timestampList=['20250402_131826','20250402_132035','20250402_131636','20250402_131439'] 
     NetworkModelNameList = ['InceptionV3','Xception','EfficientNetB0','ConvNeXtTiny']
     fovName='FOV_Raphidiopsis1'#'FOV_Phormidium1'
+    '''
+    # Biology
+    timestampList=['20250402_233857','20250402_234313','20250402_233523','20250402_233154']
+    NetworkModelNameList=['InceptionV3','Xception','EfficientNetB0','ConvNeXtTiny']
+    fovName='FOV_SESCAM-15-HE_4-classes'
 
     for timestamp, NetworkModelName in zip(timestampList, NetworkModelNameList):
         for ATCK_NAME in ATCK_NAME_LIST:

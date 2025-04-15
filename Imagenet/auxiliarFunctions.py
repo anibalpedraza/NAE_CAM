@@ -628,15 +628,15 @@ def saveBoxPlot(heatmap_array, img_data, DATA_ID, violin=False, atck='Adv. Artif
 
     if img_data != "":
         plt.boxplot(x=heatmap_array, vert=False, showmeans = True, meanline = True)
-        plt.xlabel('Intensidad del mapa de activación')
+        plt.xlabel('Activation map intensity')
         type = defineTypeOfAdversarial(img_data)
-        title ='Diagrama de caja, imagen %s' % (type)
+        title ='Box plot, image %s' % (type)
         id="_" + img_data.name
     else:
         type = "summary"
         if violin:
             id = "_violin"
-            title = "Diagrama de violin con el resumen\nde las 500 imagenes de cada tipo"
+            title = "Violin plot with 500 images summary"
             violin = plt.violinplot(heatmap_array, vert=True, showmeans=True, showmedians=True)
             vp = violin['cmeans']
             vp.set_edgecolor("#42FF33")
@@ -646,13 +646,15 @@ def saveBoxPlot(heatmap_array, img_data, DATA_ID, violin=False, atck='Adv. Artif
             plt.boxplot(x=heatmap_array, vert=True, showfliers=False, showmeans=True, meanline=True)
             plt.ylim(0, 255)
             id = ""
-            title = "Diagrama de caja con el resumen\nde las 500 imagenes de cada tipo"
-        plt.xticks([1, 2, 3],["Original", "Adv. Naturales", atck])
+            title = "Box plot with 500 images summary"
+        plt.xticks([1, 2, 3],["Original", "Adv. Natural", atck])
 
+    plt.ylabel('Image pixel intensity')
     plt.title(title)
     plt.subplots_adjust(bottom=0.1, right=0.97)
 
-    plt.savefig("results/graficas/%s/BoxPlot_" % (DATA_ID) + type + id)
+    plt.savefig("results/graficas/%s/BoxPlot_" % (DATA_ID) + type+'_'+atck + id,
+                dpi=300, bbox_inches="tight")
     plt.clf()
 
 def saveHistogram(heatmap_array, img_data, DATA_ID, atck=''):
@@ -671,15 +673,16 @@ def saveHistogram(heatmap_array, img_data, DATA_ID, atck=''):
     intervalos = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255]  # indicamos los extremos de los intervalos
 
     plt.hist(x=heatmap_array, bins=24, color='#40A2C6', rwidth=0.85 )#https://htmlcolorcodes.com/es/
-    plt.title('Histograma del mapa de activación,\nimagen %s' % (type))
-    plt.xlabel('Intensidad del mapa de activación')
-    plt.ylabel('Frecuencia')
+    plt.title('Activation map histogram, image %s' % (type))
+    plt.xlabel('Activation map pixel intensity')
+    plt.ylabel('Frequency')
     plt.ylim(0, 35000)
     plt.xticks(intervalos)
     plt.xticks(rotation=45)
     plt.subplots_adjust(bottom=0.14, right=0.97)
 
-    plt.savefig("results/graficas/%s/histogram_" % (DATA_ID) + type + id)
+    plt.savefig("results/graficas/%s/histogram_" % (DATA_ID) + type + id,
+                dpi=300, bbox_inches="tight")
     plt.clf()
     #fig = sm.qqplot(heatmap_array, line='45')
 
@@ -694,21 +697,25 @@ def saveBarWithError(mean_data, freq_data, std_data, img_data, DATA_ID, atck='')
     type = img_data
     intervalos = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255]  # indicamos los extremos de los intervalos
 
+    if type == "adv. naturales":
+        type = "Adv_Natural"
+    elif type == "adv. artificiales,":
+        type = "Adv_Artificial"
+
     plt.bar(x=mean_data, height=freq_data, yerr=std_data, capsize=5, color='#40A2C6', ecolor="#FF5733", width=8)#https://htmlcolorcodes.com/es/
-    plt.title('Histograma del mapa de activación,\nresumen de las 500 imágenes %s %s' % (type, atck))
-    plt.xlabel('Intensidad del mapa de activación')
-    plt.ylabel('Frecuencia')
+    plt.title('Activation map histogram,\n500 images summary:  %s %s' % (type, atck))
+    plt.xlabel('Activation map pixel intensity')
+    plt.ylabel('Frequency')
     #plt.ylim(0, 21000)
     plt.xticks(intervalos)
     plt.xticks(rotation=45)
     plt.subplots_adjust(bottom=0.13, right=0.97)
 
-    if type == "adv. naturales":
-        type = "AdvNaturales"
-    elif type == "adv. artificiales,":
-        type = "AdvArtificiales"
+    if atck != '':
+        atck = "_"+atck
 
-    plt.savefig("results/graficas/%s/histogram_500img_" % (DATA_ID) + type + atck)
+    plt.savefig("results/graficas/%s/histogram_500img_" % (DATA_ID) + type + atck,
+                dpi=300, bbox_inches="tight")
     plt.clf()
 
 def saveMeanLineWithError(mean500_Orig, mean500_AdvNat, mean500_AdvArt, freq_orig, freq_nat, freq_art, std_orig, std_nat, std_art, DATA_ID, atck=''):
@@ -723,14 +730,15 @@ def saveMeanLineWithError(mean500_Orig, mean500_AdvNat, mean500_AdvArt, freq_ori
     plt.errorbar(mean500_Orig, freq_orig)#, xerr=std_orig
     plt.errorbar(mean500_AdvNat, freq_nat)
     plt.errorbar(mean500_AdvArt, freq_art)
-    plt.title('Media de intensidad de las 500 imagenes frente a su frequencia')
-    plt.xlabel('Intensidad del mapa de activación')
-    plt.ylabel('Frecuencia')
+    plt.title('Mean intensity vs frequency 500 images summary') #Media de intensidad de las 500 imagenes frente a su frequencia
+    plt.xlabel('Activation map pixel intensity')
+    plt.ylabel('Frequency')
     #plt.ylim(0, 20000)
     plt.legend(["Original", "Adv. Natural", "Adv. Artificial: %s" % (atck)] )
     plt.subplots_adjust(bottom=0.1, right=0.97)
 
-    plt.savefig("results/graficas/%s/summary_MeanLine_Freq_Error" % (DATA_ID))
+    plt.savefig("results/graficas/%s/summary_MeanLine_Freq_Error" % (DATA_ID),
+                dpi=300, bbox_inches="tight")
     plt.clf()
 def defineTypeOfAdversarial(img):
     if img.attackName == "":

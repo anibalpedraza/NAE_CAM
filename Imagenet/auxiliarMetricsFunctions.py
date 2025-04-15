@@ -102,13 +102,14 @@ def createDataFrameToPlot(freq_orig, freq_nat, freq_art, std_orig, std_nat, std_
     if violin != True:
         df.plot(kind='bar', ecolor="#FF5733", width=0.8)#, yerr=dfe
         plt.legend(["Original", "Adv. Natural", "Adv. Artificial: %s" % (atck)])
-        plt.title('Histograma comparativo del mapa de activación,\nresumen de las 500 imágenes de cada tipo')
-        plt.xlabel('Intervalos de intensidad del mapa de activación')
-        plt.ylabel('Frecuencia')
+        plt.title('Activation map comparative histogram,\n500 images summary')
+        plt.xlabel('Activation map intensity intervals')
+        plt.ylabel('Frequency')
         #plt.ylim(0, 20000)
-        plt.xticks([])
+        #plt.xticks([])
         plt.subplots_adjust(bottom=0.1, right=0.97)
-        plt.savefig("results/graficas/%s/comparacionFreqHistograma" % (DATA_ID))
+        plt.savefig("results/graficas/%s/comparacionFreqHistograma" % (DATA_ID) +'_'+atck,
+                    dpi=300, bbox_inches="tight")
         plt.clf()
     if violin:#este es el feo
         fig = go.Figure(go.Violin(y=df, box_visible=True, line_color="#ACCBF3", meanline_visible=True,
